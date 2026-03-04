@@ -6,7 +6,7 @@ use sqlx::FromRow;
 pub struct Refund {
     pub id: String,
     pub payment_id: String,
-    pub amount: f64,
+    pub amount: i64, // centavos
     pub status: String,
     pub reason: Option<String>,
     pub provider_refund_id: Option<String>,

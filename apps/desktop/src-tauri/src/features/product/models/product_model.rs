@@ -14,9 +14,9 @@ pub struct Product {
     pub name: String,
     pub slug: String,
     pub gtin_ean: Option<String>,
-    pub price: f64,
-    pub promotional_price: Option<f64>,
-    pub cost_price: Option<f64>,
+    pub price: i64,                    // centavos
+    pub promotional_price: Option<i64>, // centavos
+    pub cost_price: Option<i64>,        // centavos
     pub currency: Option<String>, // DEFAULT 'BRL'
     pub tax_ncm: Option<String>,
     pub is_shippable: bool,         // INTEGER DEFAULT 1

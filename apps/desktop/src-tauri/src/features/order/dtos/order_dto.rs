@@ -8,16 +8,18 @@ pub struct CreateOrderDTO {
     pub channel: Option<String>,
     pub shop_id: Option<String>,
     pub customer_id: Option<String>,
+    pub payment_intent_id: Option<String>,
+    pub checkout_id: Option<String>,
     pub status: Option<String>,
     pub payment_status: Option<String>,
     pub fulfillment_status: Option<String>,
     pub currency: Option<String>,
-    pub subtotal_price: f64,
-    pub total_discounts: Option<f64>,
-    pub total_tax: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_tip: Option<f64>,
-    pub total_price: f64,
+    pub subtotal_price: i64,
+    pub total_discounts: Option<i64>,
+    pub total_tax: Option<i64>,
+    pub total_shipping: Option<i64>,
+    pub total_tip: Option<i64>,
+    pub total_price: i64,
     pub tax_lines: Option<String>,
     pub discount_codes: Option<String>,
     pub note: Option<String>,
@@ -39,6 +41,8 @@ impl CreateOrderDTO {
             channel: self.channel.or_else(|| Some("manual".to_string())),
             shop_id: self.shop_id,
             customer_id: self.customer_id,
+            payment_intent_id: self.payment_intent_id,
+            checkout_id: self.checkout_id,
             status: self.status.or_else(|| Some("open".to_string())),
             payment_status: self.payment_status.or_else(|| Some("unpaid".to_string())),
             fulfillment_status: self
@@ -61,8 +65,8 @@ impl CreateOrderDTO {
             billing_address: self.billing_address,
             shipping_address: self.shipping_address,
             sync_status: Some("created".to_string()),
-            created_at: Some(now),
-            updated_at: Some(now),
+            created_at: Some(now.to_rfc3339()),
+            updated_at: Some(now.to_rfc3339()),
             cancelled_at: None,
             closed_at: None,
         }
@@ -75,16 +79,18 @@ pub struct UpdateOrderDTO {
     pub channel: Option<String>,
     pub shop_id: Option<String>,
     pub customer_id: Option<String>,
+    pub payment_intent_id: Option<String>,
+    pub checkout_id: Option<String>,
     pub status: Option<String>,
     pub payment_status: Option<String>,
     pub fulfillment_status: Option<String>,
     pub currency: Option<String>,
-    pub subtotal_price: Option<f64>,
-    pub total_discounts: Option<f64>,
-    pub total_tax: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_tip: Option<f64>,
-    pub total_price: Option<f64>,
+    pub subtotal_price: Option<i64>,
+    pub total_discounts: Option<i64>,
+    pub total_tax: Option<i64>,
+    pub total_shipping: Option<i64>,
+    pub total_tip: Option<i64>,
+    pub total_price: Option<i64>,
     pub tax_lines: Option<String>,
     pub discount_codes: Option<String>,
     pub note: Option<String>,
@@ -108,6 +114,12 @@ impl UpdateOrderDTO {
         }
         if let Some(customer_id) = self.customer_id {
             order.customer_id = Some(customer_id);
+        }
+        if let Some(payment_intent_id) = self.payment_intent_id {
+            order.payment_intent_id = Some(payment_intent_id);
+        }
+        if let Some(checkout_id) = self.checkout_id {
+            order.checkout_id = Some(checkout_id);
         }
         if let Some(status) = self.status {
             order.status = Some(status);
@@ -168,7 +180,7 @@ impl UpdateOrderDTO {
         }
 
         order.sync_status = Some("updated".to_string());
-        order.updated_at = Some(now);
+        order.updated_at = Some(now.to_rfc3339());
         order
     }
 }

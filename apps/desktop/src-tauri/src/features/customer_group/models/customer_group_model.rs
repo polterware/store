@@ -17,7 +17,7 @@ pub struct CustomerGroup {
     pub price_list_id: Option<String>,
     pub tax_class: Option<String>,
     pub allowed_payment_methods: Option<String>, // TEXT[]
-    pub min_order_amount: Option<f64>,           // DEFAULT 0
+    pub min_order_amount: Option<i64>,           // centavos
     pub metadata: Option<String>,                // JSONB DEFAULT '{}'
     #[serde(rename = "_status")]
     #[sqlx(rename = "_status")]

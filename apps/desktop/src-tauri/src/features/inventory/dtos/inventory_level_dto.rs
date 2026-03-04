@@ -10,8 +10,8 @@ pub struct CreateInventoryLevelDTO {
     pub batch_number: Option<String>,
     pub serial_number: Option<String>,
     pub expiry_date: Option<String>,
-    pub quantity_on_hand: Option<f64>,
-    pub quantity_reserved: Option<f64>,
+    pub quantity_on_hand: Option<i64>,
+    pub quantity_reserved: Option<i64>,
     pub stock_status: Option<String>,
     pub aisle_bin_slot: Option<String>,
 }
@@ -25,8 +25,8 @@ impl CreateInventoryLevelDTO {
             batch_number: self.batch_number,
             serial_number: self.serial_number,
             expiry_date: self.expiry_date,
-            quantity_on_hand: self.quantity_on_hand.unwrap_or(0.0),
-            quantity_reserved: self.quantity_reserved.unwrap_or(0.0),
+            quantity_on_hand: self.quantity_on_hand.unwrap_or(0),
+            quantity_reserved: self.quantity_reserved.unwrap_or(0),
             stock_status: self.stock_status.or(Some("sellable".to_string())),
             aisle_bin_slot: self.aisle_bin_slot,
             last_counted_at: None,
@@ -45,8 +45,8 @@ pub struct UpdateInventoryLevelDTO {
     pub batch_number: Option<String>,
     pub serial_number: Option<String>,
     pub expiry_date: Option<String>,
-    pub quantity_on_hand: Option<f64>,
-    pub quantity_reserved: Option<f64>,
+    pub quantity_on_hand: Option<i64>,
+    pub quantity_reserved: Option<i64>,
     pub stock_status: Option<String>,
     pub aisle_bin_slot: Option<String>,
 }
@@ -89,7 +89,7 @@ impl UpdateInventoryLevelDTO {
 pub struct AdjustStockDTO {
     pub product_id: String,
     pub location_id: String,
-    pub new_quantity: f64,
+    pub new_quantity: i64,
     pub reason: Option<String>,
 }
 
@@ -98,6 +98,6 @@ pub struct TransferStockDTO {
     pub product_id: String,
     pub from_location_id: String,
     pub to_location_id: String,
-    pub quantity: f64,
+    pub quantity: i64,
     pub reason: Option<String>,
 }

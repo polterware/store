@@ -132,7 +132,7 @@ pub async fn get_available_quantity(
     shop_id: String,
     product_id: String,
     location_id: String,
-) -> Result<f64, String> {
+) -> Result<i64, String> {
     let pool = repo_factory
         .shop_db(&shop_id)
         .await

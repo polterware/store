@@ -10,8 +10,8 @@ pub struct CreateTransactionItemDTO {
     pub sku_snapshot: Option<String>,
     pub name_snapshot: Option<String>,
     pub quantity: f64,
-    pub unit_price: f64,
-    pub unit_cost: Option<f64>,
+    pub unit_price: i64,         // centavos
+    pub unit_cost: Option<i64>,  // centavos
     pub attributes_snapshot: Option<String>,
     pub tax_details: Option<String>,
 }
@@ -28,7 +28,7 @@ impl CreateTransactionItemDTO {
             quantity: self.quantity,
             unit_price: self.unit_price,
             unit_cost: self.unit_cost,
-            total_line: Some(self.quantity * self.unit_price),
+            total_line: Some((self.quantity * self.unit_price as f64) as i64),
             attributes_snapshot: self.attributes_snapshot,
             tax_details: self.tax_details,
             sync_status: Some("created".to_string()),
@@ -45,8 +45,8 @@ pub struct UpdateTransactionItemDTO {
     pub sku_snapshot: Option<String>,
     pub name_snapshot: Option<String>,
     pub quantity: Option<f64>,
-    pub unit_price: Option<f64>,
-    pub unit_cost: Option<f64>,
+    pub unit_price: Option<i64>,  // centavos
+    pub unit_cost: Option<i64>,   // centavos
     pub attributes_snapshot: Option<String>,
     pub tax_details: Option<String>,
 }
@@ -81,7 +81,7 @@ impl UpdateTransactionItemDTO {
         }
 
         // Recalculate total_line
-        item.total_line = Some(item.quantity * item.unit_price);
+        item.total_line = Some((item.quantity * item.unit_price as f64) as i64);
         item.sync_status = Some("updated".to_string());
         item.updated_at = Some(now);
         item

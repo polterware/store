@@ -18,9 +18,9 @@ pub struct CreateProductDTO {
     pub name: String,
     pub slug: String, // Now required
     pub gtin_ean: Option<String>,
-    pub price: f64,
-    pub promotional_price: Option<f64>,
-    pub cost_price: Option<f64>,
+    pub price: i64,                     // centavos
+    pub promotional_price: Option<i64>, // centavos
+    pub cost_price: Option<i64>,        // centavos
     pub currency: Option<String>,
     pub tax_ncm: Option<String>,
     pub is_shippable: bool,
@@ -46,9 +46,9 @@ pub struct UpdateProductDTO {
     pub name: Option<String>,
     pub slug: Option<String>,
     pub gtin_ean: Option<String>,
-    pub price: Option<f64>,
-    pub promotional_price: Option<f64>,
-    pub cost_price: Option<f64>,
+    pub price: Option<i64>,              // centavos
+    pub promotional_price: Option<i64>, // centavos
+    pub cost_price: Option<i64>,        // centavos
     pub currency: Option<String>,
     pub tax_ncm: Option<String>,
     pub is_shippable: Option<bool>,
@@ -71,8 +71,8 @@ pub struct ProductListFilterDTO {
     pub brand_id: Option<String>,
     pub query: Option<String>,
     pub is_shippable: Option<bool>,
-    pub min_price: Option<f64>,
-    pub max_price: Option<f64>,
+    pub min_price: Option<i64>, // centavos
+    pub max_price: Option<i64>, // centavos
     pub page: Option<u32>,
     pub per_page: Option<u32>,
 }

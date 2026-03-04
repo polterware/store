@@ -19,8 +19,8 @@ pub struct CreateTransactionDTO {
     pub supplier_id: Option<String>,
     pub staff_id: Option<String>,
     pub currency: Option<String>,
-    pub total_shipping: Option<f64>,
-    pub total_discount: Option<f64>,
+    pub total_shipping: Option<i64>, // centavos
+    pub total_discount: Option<i64>, // centavos
     pub shipping_method: Option<String>,
     pub shipping_address: Option<String>,
     pub billing_address: Option<String>,
@@ -43,10 +43,10 @@ impl CreateTransactionDTO {
             supplier_id: self.supplier_id,
             staff_id: self.staff_id,
             currency: self.currency.or(Some("BRL".to_string())),
-            total_items: Some(self.items.len() as f64),
-            total_shipping: self.total_shipping.or(Some(0.0)),
-            total_discount: self.total_discount.or(Some(0.0)),
-            total_net: Some(0.0), // Should be calculated by the service
+            total_items: Some(self.items.len() as i64),
+            total_shipping: self.total_shipping.or(Some(0)),
+            total_discount: self.total_discount.or(Some(0)),
+            total_net: Some(0), // Should be calculated by the service
             shipping_method: self.shipping_method,
             shipping_address: self.shipping_address,
             billing_address: self.billing_address,
@@ -65,7 +65,7 @@ impl CreateTransactionDTO {
                 sku_snapshot: None,
                 name_snapshot: None,
                 quantity: i.quantity,
-                unit_price: 0.0, // To be enriched by the service
+                unit_price: 0, // To be enriched by the service
                 unit_cost: None,
                 total_line: None,
                 attributes_snapshot: None,
@@ -90,10 +90,10 @@ pub struct UpdateTransactionDTO {
     pub supplier_id: Option<String>,
     pub staff_id: Option<String>,
     pub currency: Option<String>,
-    pub total_items: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_discount: Option<f64>,
-    pub total_net: Option<f64>,
+    pub total_items: Option<i64>,    // centavos
+    pub total_shipping: Option<i64>, // centavos
+    pub total_discount: Option<i64>, // centavos
+    pub total_net: Option<i64>,      // centavos
     pub shipping_method: Option<String>,
     pub shipping_address: Option<String>,
     pub billing_address: Option<String>,

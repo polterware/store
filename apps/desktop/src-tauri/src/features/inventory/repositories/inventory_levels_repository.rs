@@ -140,7 +140,7 @@ impl InventoryLevelsRepository {
     pub async fn decrease_quantity_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
@@ -160,7 +160,7 @@ impl InventoryLevelsRepository {
     pub async fn increase_quantity_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
@@ -180,7 +180,7 @@ impl InventoryLevelsRepository {
     pub async fn reserve_quantity_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
@@ -200,7 +200,7 @@ impl InventoryLevelsRepository {
     pub async fn release_reservation_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels

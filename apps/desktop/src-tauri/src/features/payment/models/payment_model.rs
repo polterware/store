@@ -6,7 +6,7 @@ use sqlx::FromRow;
 pub struct Payment {
     pub id: String,
     pub transaction_id: String,
-    pub amount: f64,
+    pub amount: i64, // centavos
     pub currency: Option<String>,
     pub provider: String,
     pub method: String,

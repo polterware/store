@@ -142,7 +142,7 @@ impl ShopInventoryRepository {
     pub async fn adjust_quantity(
         &self,
         id: &str,
-        quantity_change: f64,
+        quantity_change: i64,
     ) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
@@ -159,7 +159,7 @@ impl ShopInventoryRepository {
             .await
     }
 
-    pub async fn reserve_quantity(&self, id: &str, quantity: f64) -> Result<InventoryLevel> {
+    pub async fn reserve_quantity(&self, id: &str, quantity: i64) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
             SET quantity_reserved = quantity_reserved + $2,
@@ -175,7 +175,7 @@ impl ShopInventoryRepository {
             .await
     }
 
-    pub async fn release_reservation(&self, id: &str, quantity: f64) -> Result<InventoryLevel> {
+    pub async fn release_reservation(&self, id: &str, quantity: i64) -> Result<InventoryLevel> {
         let sql = r#"
             UPDATE inventory_levels
             SET quantity_reserved = quantity_reserved - $2,

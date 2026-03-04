@@ -124,12 +124,12 @@ impl PaymentService {
     pub async fn process_refund(
         &self,
         payment_id: &str,
-        amount: f64,
+        amount: i64,
         reason: Option<&str>,
         created_by: Option<&str>,
         order_id: Option<&str>,
     ) -> Result<Refund, String> {
-        if amount <= 0.0 {
+        if amount <= 0 {
             return Err("Valor do reembolso deve ser maior que zero".to_string());
         }
 
@@ -187,7 +187,7 @@ impl PaymentService {
 
         // 4. Update payment status
         let total_refunded = already_refunded + amount;
-        let new_status = if (payment.amount - total_refunded).abs() < 0.01 {
+        let new_status = if payment.amount == total_refunded {
             "refunded"
         } else {
             "partially_refunded"
@@ -213,7 +213,7 @@ impl PaymentService {
     }
 
     /// Get total refunded amount for a payment
-    pub async fn get_refunded_amount(&self, payment_id: &str) -> Result<f64, String> {
+    pub async fn get_refunded_amount(&self, payment_id: &str) -> Result<i64, String> {
         let mut tx = self
             .pool
             .begin()

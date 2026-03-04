@@ -208,13 +208,13 @@ impl<'a> PaymentsRepository<'a> {
     pub async fn get_refunded_amount_with_tx<'b>(
         tx: &mut DbTransaction<'b>,
         payment_id: &str,
-    ) -> Result<f64> {
+    ) -> Result<i64> {
         let sql = r#"
             SELECT COALESCE(SUM(amount), 0) as total
             FROM refunds
             WHERE payment_id = $1 AND status = 'completed'
         "#;
-        let result: (f64,) = sqlx::query_as(sql)
+        let result: (i64,) = sqlx::query_as(sql)
             .bind(payment_id)
             .fetch_one(&mut **tx)
             .await?;

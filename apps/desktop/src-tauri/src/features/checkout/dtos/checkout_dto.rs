@@ -19,11 +19,11 @@ pub struct CreateCheckoutDTO {
     pub shipping_line: Option<String>,
     pub applied_discount_codes: Option<String>,
     pub currency: Option<String>,
-    pub subtotal_price: Option<f64>,
-    pub total_tax: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_discounts: Option<f64>,
-    pub total_price: Option<f64>,
+    pub subtotal_price: Option<i64>,  // centavos
+    pub total_tax: Option<i64>,       // centavos
+    pub total_shipping: Option<i64>,  // centavos
+    pub total_discounts: Option<i64>, // centavos
+    pub total_price: Option<i64>,     // centavos
     pub status: Option<String>,
     pub metadata: Option<String>,
     pub recovery_url: Option<String>,
@@ -46,11 +46,11 @@ impl CreateCheckoutDTO {
             shipping_line: self.shipping_line,
             applied_discount_codes: self.applied_discount_codes,
             currency: self.currency.or(Some("BRL".to_string())),
-            subtotal_price: self.subtotal_price.or(Some(0.0)),
-            total_tax: self.total_tax.or(Some(0.0)),
-            total_shipping: self.total_shipping.or(Some(0.0)),
-            total_discounts: self.total_discounts.or(Some(0.0)),
-            total_price: self.total_price.or(Some(0.0)),
+            subtotal_price: self.subtotal_price.or(Some(0)),
+            total_tax: self.total_tax.or(Some(0)),
+            total_shipping: self.total_shipping.or(Some(0)),
+            total_discounts: self.total_discounts.or(Some(0)),
+            total_price: self.total_price.or(Some(0)),
             status: self.status.or(Some("open".to_string())),
             reservation_expires_at: None,
             completed_at: None,
@@ -73,11 +73,11 @@ pub struct UpdateCheckoutDTO {
     pub shipping_line: Option<String>,
     pub applied_discount_codes: Option<String>,
     pub currency: Option<String>,
-    pub subtotal_price: Option<f64>,
-    pub total_tax: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_discounts: Option<f64>,
-    pub total_price: Option<f64>,
+    pub subtotal_price: Option<i64>,  // centavos
+    pub total_tax: Option<i64>,       // centavos
+    pub total_shipping: Option<i64>,  // centavos
+    pub total_discounts: Option<i64>, // centavos
+    pub total_price: Option<i64>,     // centavos
     pub status: Option<String>,
     pub metadata: Option<String>,
     pub recovery_url: Option<String>,

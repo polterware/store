@@ -13,16 +13,18 @@ struct ShopOrder {
     pub idempotency_key: Option<String>,
     pub channel: Option<String>,
     pub customer_id: Option<String>,
+    pub payment_intent_id: Option<String>,
+    pub checkout_id: Option<String>,
     pub status: Option<String>,
     pub payment_status: Option<String>,
     pub fulfillment_status: Option<String>,
     pub currency: Option<String>,
-    pub subtotal_price: f64,
-    pub total_discounts: Option<f64>,
-    pub total_tax: Option<f64>,
-    pub total_shipping: Option<f64>,
-    pub total_tip: Option<f64>,
-    pub total_price: f64,
+    pub subtotal_price: i64,
+    pub total_discounts: Option<i64>,
+    pub total_tax: Option<i64>,
+    pub total_shipping: Option<i64>,
+    pub total_tip: Option<i64>,
+    pub total_price: i64,
     pub tax_lines: Option<String>,
     pub discount_codes: Option<String>,
     pub note: Option<String>,
@@ -50,6 +52,8 @@ impl ShopOrder {
             channel: self.channel,
             shop_id: Some(shop_id),
             customer_id: self.customer_id,
+            payment_intent_id: self.payment_intent_id,
+            checkout_id: self.checkout_id,
             status: self.status,
             payment_status: self.payment_status,
             fulfillment_status: self.fulfillment_status,
@@ -92,13 +96,14 @@ impl ShopOrderRepository {
         let sql = r#"
             INSERT INTO orders (
                 id, order_number, idempotency_key, channel, customer_id,
+                payment_intent_id, checkout_id,
                 status, payment_status, fulfillment_status, currency, subtotal_price,
                 total_discounts, total_tax, total_shipping, total_tip, total_price,
                 tax_lines, discount_codes, note, tags, custom_attributes, metadata,
                 customer_snapshot, billing_address, shipping_address, _status,
                 created_at, updated_at, cancelled_at, closed_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
             RETURNING *
         "#;
 
@@ -108,6 +113,8 @@ impl ShopOrderRepository {
             .bind(&order.idempotency_key)
             .bind(&order.channel)
             .bind(&order.customer_id)
+            .bind(&order.payment_intent_id)
+            .bind(&order.checkout_id)
             .bind(&order.status)
             .bind(&order.payment_status)
             .bind(&order.fulfillment_status)

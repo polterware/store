@@ -24,10 +24,10 @@ impl InventoryService {
         product_id: &str,
         from_location_id: &str,
         to_location_id: &str,
-        quantity: f64,
+        quantity: i64,
         _reason: Option<&str>,
     ) -> Result<(), String> {
-        if quantity <= 0.0 {
+        if quantity <= 0 {
             return Err("Quantidade deve ser maior que zero".to_string());
         }
 
@@ -125,10 +125,10 @@ impl InventoryService {
         &self,
         product_id: &str,
         location_id: &str,
-        new_quantity: f64,
+        new_quantity: i64,
         _reason: Option<&str>,
     ) -> Result<(), String> {
-        if new_quantity < 0.0 {
+        if new_quantity < 0 {
             return Err("Quantidade não pode ser negativa".to_string());
         }
 
@@ -156,13 +156,13 @@ impl InventoryService {
         let current_quantity = level.quantity_on_hand;
         let difference = new_quantity - current_quantity;
 
-        if difference.abs() < 0.001 {
+        if difference == 0 {
             // No change needed
             return Ok(());
         }
 
         // Determine movement type
-        let (movement_type, movement_quantity) = if difference > 0.0 {
+        let (movement_type, movement_quantity) = if difference > 0 {
             ("in", difference)
         } else {
             ("out", difference.abs())
@@ -200,7 +200,7 @@ impl InventoryService {
         &self,
         product_id: &str,
         location_id: &str,
-    ) -> Result<f64, String> {
+    ) -> Result<i64, String> {
         let mut tx = self
             .pool
             .begin()
@@ -217,7 +217,7 @@ impl InventoryService {
 
         match level {
             Some(l) => Ok(l.quantity_on_hand - l.quantity_reserved),
-            None => Ok(0.0),
+            None => Ok(0),
         }
     }
 }

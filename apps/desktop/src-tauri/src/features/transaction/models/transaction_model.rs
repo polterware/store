@@ -15,10 +15,10 @@ pub struct Transaction {
     pub supplier_id: Option<String>,
     pub staff_id: Option<String>,
     pub currency: Option<String>,    // DEFAULT 'BRL'
-    pub total_items: Option<f64>,    // DEFAULT 0
-    pub total_shipping: Option<f64>, // DEFAULT 0
-    pub total_discount: Option<f64>, // DEFAULT 0
-    pub total_net: Option<f64>,      // DEFAULT 0
+    pub total_items: Option<i64>,    // DEFAULT 0, centavos
+    pub total_shipping: Option<i64>, // DEFAULT 0, centavos
+    pub total_discount: Option<i64>, // DEFAULT 0, centavos
+    pub total_net: Option<i64>,      // DEFAULT 0, centavos
     pub shipping_method: Option<String>,
     pub shipping_address: Option<String>, // JSONB stored as TEXT
     pub billing_address: Option<String>,  // JSONB stored as TEXT
@@ -37,9 +37,9 @@ pub struct TransactionItem {
     pub sku_snapshot: Option<String>,
     pub name_snapshot: Option<String>,
     pub quantity: f64,
-    pub unit_price: f64,
-    pub unit_cost: Option<f64>,
-    pub total_line: Option<f64>,             // Real Generated Always
+    pub unit_price: i64,                       // centavos
+    pub unit_cost: Option<i64>,                // centavos
+    pub total_line: Option<i64>,               // centavos, Generated Always
     pub attributes_snapshot: Option<String>, // JSONB
     pub tax_details: Option<String>,         // JSONB
     #[serde(rename = "_status")]
@@ -57,9 +57,9 @@ pub struct InventoryMovement {
     #[serde(rename = "type")]
     #[sqlx(rename = "type")]
     pub movement_type: Option<String>, // 'in' or 'out'
-    pub quantity: f64,
-    pub previous_balance: Option<f64>,
-    pub new_balance: Option<f64>,
+    pub quantity: i64,
+    pub previous_balance: Option<i64>,
+    pub new_balance: Option<i64>,
     #[serde(rename = "_status")]
     #[sqlx(rename = "_status")]
     pub sync_status: Option<String>,

@@ -8,9 +8,9 @@ pub struct CreateInventoryMovementDTO {
     pub transaction_id: Option<String>,
     pub inventory_level_id: String,
     pub movement_type: String,
-    pub quantity: f64,
-    pub previous_balance: Option<f64>,
-    pub new_balance: Option<f64>,
+    pub quantity: i64,
+    pub previous_balance: Option<i64>,
+    pub new_balance: Option<i64>,
 }
 
 impl CreateInventoryMovementDTO {

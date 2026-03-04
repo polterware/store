@@ -1,3 +1,4 @@
+/** All monetary values are in centavos (integer). */
 export type Order = {
   id: string;
   order_number: number | null;
@@ -5,6 +6,8 @@ export type Order = {
   channel: string | null;
   shop_id: string | null;
   customer_id: string | null;
+  payment_intent_id: string | null;
+  checkout_id: string | null;
   status: string | null;
   payment_status: string | null;
   fulfillment_status: string | null;
@@ -35,6 +38,8 @@ export type CreateOrderDTO = {
   channel?: string;
   shop_id?: string;
   customer_id?: string;
+  payment_intent_id?: string;
+  checkout_id?: string;
   status?: string;
   payment_status?: string;
   fulfillment_status?: string;
@@ -61,6 +66,8 @@ export type UpdateOrderDTO = {
   channel?: string;
   shop_id?: string;
   customer_id?: string;
+  payment_intent_id?: string;
+  checkout_id?: string;
   status?: string;
   payment_status?: string;
   fulfillment_status?: string;

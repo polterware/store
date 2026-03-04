@@ -93,9 +93,9 @@ CREATE TABLE IF NOT EXISTS products (
     name TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
     gtin_ean TEXT,
-    price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
-    promotional_price NUMERIC(10, 2) CHECK (promotional_price IS NULL OR promotional_price >= 0),
-    cost_price NUMERIC(10, 2) CHECK (cost_price IS NULL OR cost_price >= 0),
+    price BIGINT NOT NULL CHECK (price >= 0),                    -- centavos
+    promotional_price BIGINT CHECK (promotional_price IS NULL OR promotional_price >= 0),
+    cost_price BIGINT CHECK (cost_price IS NULL OR cost_price >= 0),
     currency TEXT DEFAULT 'BRL',
     tax_ncm TEXT,
     is_shippable BOOLEAN DEFAULT true,
@@ -165,8 +165,8 @@ CREATE TABLE IF NOT EXISTS inventory_levels (
     batch_number TEXT,
     serial_number TEXT,
     expiry_date DATE,
-    quantity_on_hand NUMERIC(10, 2) DEFAULT 0,
-    quantity_reserved NUMERIC(10, 2) DEFAULT 0,
+    quantity_on_hand BIGINT DEFAULT 0,
+    quantity_reserved BIGINT DEFAULT 0,
     stock_status TEXT DEFAULT 'sellable' CHECK (stock_status IN ('sellable', 'damaged', 'quarantine', 'expired')),
     aisle_bin_slot TEXT,
     last_counted_at TIMESTAMP WITH TIME ZONE,
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS customer_groups (
     price_list_id TEXT,
     tax_class TEXT,
     allowed_payment_methods TEXT, -- TEXT[]
-    min_order_amount NUMERIC(10, 2) DEFAULT 0,
+    min_order_amount BIGINT DEFAULT 0,                             -- centavos
     metadata TEXT DEFAULT '{}', -- JSONB
     _status TEXT DEFAULT 'created',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS customers (
     tags TEXT, -- TEXT[]
     accepts_marketing BOOLEAN DEFAULT false,
     customer_group_id TEXT REFERENCES customer_groups(id) ON DELETE SET NULL,
-    total_spent NUMERIC(10, 2) DEFAULT 0 CHECK (total_spent >= 0),
+    total_spent BIGINT DEFAULT 0 CHECK (total_spent >= 0),        -- centavos
     orders_count INTEGER DEFAULT 0 CHECK (orders_count >= 0),
     last_order_at TIMESTAMP WITH TIME ZONE,
     notes TEXT,
@@ -301,10 +301,10 @@ CREATE TABLE IF NOT EXISTS transactions (
     supplier_id TEXT,
     staff_id TEXT, -- References users in registry (validated at app layer)
     currency TEXT DEFAULT 'BRL',
-    total_items NUMERIC(10, 2) DEFAULT 0 CHECK (total_items >= 0),
-    total_shipping NUMERIC(10, 2) DEFAULT 0 CHECK (total_shipping >= 0),
-    total_discount NUMERIC(10, 2) DEFAULT 0 CHECK (total_discount >= 0),
-    total_net NUMERIC(10, 2) DEFAULT 0,
+    total_items BIGINT DEFAULT 0 CHECK (total_items >= 0),        -- centavos
+    total_shipping BIGINT DEFAULT 0 CHECK (total_shipping >= 0),  -- centavos
+    total_discount BIGINT DEFAULT 0 CHECK (total_discount >= 0),  -- centavos
+    total_net BIGINT DEFAULT 0,                                    -- centavos
     shipping_method TEXT,
     shipping_address TEXT, -- JSONB
     billing_address TEXT,  -- JSONB
@@ -331,9 +331,9 @@ CREATE TABLE IF NOT EXISTS transaction_items (
     sku_snapshot TEXT,
     name_snapshot TEXT,
     quantity NUMERIC(10, 2) NOT NULL,
-    unit_price NUMERIC(10, 2) NOT NULL,
-    unit_cost NUMERIC(10, 2),
-    total_line NUMERIC(10, 2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+    unit_price BIGINT NOT NULL,                                    -- centavos
+    unit_cost BIGINT,                                              -- centavos
+    total_line BIGINT GENERATED ALWAYS AS ((quantity * unit_price)::bigint) STORED,  -- centavos
     attributes_snapshot TEXT, -- JSONB
     tax_details TEXT, -- JSONB
     _status TEXT DEFAULT 'created',
@@ -353,9 +353,9 @@ CREATE TABLE IF NOT EXISTS inventory_movements (
     transaction_id TEXT REFERENCES transactions(id) ON DELETE SET NULL,
     inventory_level_id TEXT REFERENCES inventory_levels(id) ON DELETE RESTRICT,
     type TEXT CHECK (type IN ('in', 'out')),
-    quantity NUMERIC(10, 2) NOT NULL,
-    previous_balance NUMERIC(10, 2),
-    new_balance NUMERIC(10, 2),
+    quantity BIGINT NOT NULL,
+    previous_balance BIGINT,
+    new_balance BIGINT,
     _status TEXT DEFAULT 'created',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -371,7 +371,7 @@ CREATE INDEX IF NOT EXISTS idx_inventory_movements_level ON inventory_movements(
 CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     transaction_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE RESTRICT,
-    amount NUMERIC(10, 2) NOT NULL,
+    amount BIGINT NOT NULL,                                        -- centavos
     currency TEXT DEFAULT 'BRL',
     provider TEXT NOT NULL,
     method TEXT NOT NULL,
@@ -400,7 +400,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_provider_transaction ON payments(provide
 CREATE TABLE IF NOT EXISTS refunds (
     id TEXT PRIMARY KEY,
     payment_id TEXT NOT NULL REFERENCES payments(id) ON DELETE RESTRICT,
-    amount NUMERIC(10, 2) NOT NULL,
+    amount BIGINT NOT NULL,                                        -- centavos
     status TEXT DEFAULT 'pending',
     reason TEXT,
     provider_refund_id TEXT,
@@ -428,11 +428,11 @@ CREATE TABLE IF NOT EXISTS checkouts (
     shipping_line TEXT, -- JSONB
     applied_discount_codes TEXT, -- JSONB
     currency TEXT DEFAULT 'BRL',
-    subtotal_price NUMERIC(10, 2) DEFAULT 0,
-    total_tax NUMERIC(10, 2) DEFAULT 0,
-    total_shipping NUMERIC(10, 2) DEFAULT 0,
-    total_discounts NUMERIC(10, 2) DEFAULT 0,
-    total_price NUMERIC(10, 2) DEFAULT 0,
+    subtotal_price BIGINT DEFAULT 0,                               -- centavos
+    total_tax BIGINT DEFAULT 0,                                    -- centavos
+    total_shipping BIGINT DEFAULT 0,                               -- centavos
+    total_discounts BIGINT DEFAULT 0,                              -- centavos
+    total_price BIGINT DEFAULT 0,                                  -- centavos
     status TEXT DEFAULT 'open',
     reservation_expires_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
@@ -458,16 +458,18 @@ CREATE TABLE IF NOT EXISTS orders (
     idempotency_key TEXT UNIQUE,
     channel TEXT DEFAULT 'web',
     customer_id TEXT REFERENCES customers(id) ON DELETE SET NULL,
+    payment_intent_id TEXT UNIQUE,                                 -- Stripe/provider idempotency
+    checkout_id TEXT,                                              -- Link to checkout session
     status TEXT DEFAULT 'open',
     payment_status TEXT DEFAULT 'unpaid',
     fulfillment_status TEXT DEFAULT 'unfulfilled',
     currency TEXT DEFAULT 'BRL',
-    subtotal_price NUMERIC(10, 2) NOT NULL,
-    total_discounts NUMERIC(10, 2) DEFAULT 0,
-    total_tax NUMERIC(10, 2) DEFAULT 0,
-    total_shipping NUMERIC(10, 2) DEFAULT 0,
-    total_tip NUMERIC(10, 2) DEFAULT 0,
-    total_price NUMERIC(10, 2) NOT NULL,
+    subtotal_price BIGINT NOT NULL,                                -- centavos
+    total_discounts BIGINT DEFAULT 0,                              -- centavos
+    total_tax BIGINT DEFAULT 0,                                    -- centavos
+    total_shipping BIGINT DEFAULT 0,                               -- centavos
+    total_tip BIGINT DEFAULT 0,                                    -- centavos
+    total_price BIGINT NOT NULL,                                   -- centavos
     tax_lines TEXT DEFAULT '[]', -- JSONB
     discount_codes TEXT DEFAULT '[]', -- JSONB
     note TEXT,
@@ -477,7 +479,7 @@ CREATE TABLE IF NOT EXISTS orders (
     customer_snapshot TEXT NOT NULL, -- JSONB
     billing_address TEXT, -- JSONB
     shipping_address TEXT, -- JSONB
-    _status TEXT DEFAULT 'created',
+    _status TEXT DEFAULT 'synced',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     cancelled_at TIMESTAMP WITH TIME ZONE,
@@ -490,6 +492,32 @@ CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at) WHERE _statu
 CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number) WHERE _status != 'deleted';
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status) WHERE _status != 'deleted';
 CREATE INDEX IF NOT EXISTS idx_orders_fulfillment_status ON orders(fulfillment_status) WHERE _status != 'deleted';
+CREATE INDEX IF NOT EXISTS idx_orders_payment_intent ON orders(payment_intent_id) WHERE payment_intent_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_checkout_id ON orders(checkout_id) WHERE checkout_id IS NOT NULL;
+
+-- ============================================================
+-- 17b. ORDER ITEMS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    image_url TEXT,
+    price BIGINT NOT NULL,                                         -- centavos
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    size TEXT,
+    sku_snapshot TEXT,
+    attributes_snapshot TEXT,                                       -- JSONB
+    shipping_snapshot TEXT,                                         -- JSONB
+    _status TEXT DEFAULT 'synced',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id) WHERE _status != 'deleted';
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id) WHERE _status != 'deleted';
 
 -- ============================================================
 -- 18. SHIPMENTS
@@ -512,8 +540,8 @@ CREATE TABLE IF NOT EXISTS shipments (
     shipping_label_url TEXT,
     invoice_url TEXT,
     invoice_key TEXT,
-    cost_amount NUMERIC(10, 2),
-    insurance_amount NUMERIC(10, 2),
+    cost_amount BIGINT,                                            -- centavos
+    insurance_amount BIGINT,                                       -- centavos
     estimated_delivery_at TIMESTAMP WITH TIME ZONE,
     shipped_at TIMESTAMP WITH TIME ZONE,
     delivered_at TIMESTAMP WITH TIME ZONE,
@@ -535,7 +563,7 @@ CREATE INDEX IF NOT EXISTS idx_shipments_tracking ON shipments(tracking_number) 
 CREATE TABLE IF NOT EXISTS shipment_items (
     id TEXT PRIMARY KEY,
     shipment_id TEXT NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
-    order_item_id TEXT NOT NULL,
+    order_item_id TEXT NOT NULL REFERENCES order_items(id),
     quantity INTEGER NOT NULL,
     batch_number TEXT,
     serial_numbers TEXT, -- TEXT[]
@@ -576,20 +604,20 @@ CREATE TABLE IF NOT EXISTS pos_sessions (
     terminal_id TEXT,
     session_number INTEGER,
     status TEXT DEFAULT 'open' CHECK (status IN ('open', 'paused', 'closed', 'cancelled')),
-    opening_cash_amount NUMERIC(10, 2) DEFAULT 0,
+    opening_cash_amount BIGINT DEFAULT 0,                          -- centavos
     opening_notes TEXT,
     opened_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    closing_cash_amount NUMERIC(10, 2),
+    closing_cash_amount BIGINT,                                    -- centavos
     closing_notes TEXT,
     closed_at TIMESTAMP WITH TIME ZONE,
     closed_by TEXT, -- References users in registry
-    total_sales NUMERIC(10, 2) DEFAULT 0,
-    total_returns NUMERIC(10, 2) DEFAULT 0,
-    total_cash_in NUMERIC(10, 2) DEFAULT 0,
-    total_cash_out NUMERIC(10, 2) DEFAULT 0,
+    total_sales BIGINT DEFAULT 0,                                  -- centavos
+    total_returns BIGINT DEFAULT 0,                                -- centavos
+    total_cash_in BIGINT DEFAULT 0,                                -- centavos
+    total_cash_out BIGINT DEFAULT 0,                               -- centavos
     transaction_count INTEGER DEFAULT 0,
-    expected_cash_amount NUMERIC(10, 2),
-    cash_difference NUMERIC(10, 2),
+    expected_cash_amount BIGINT,                                   -- centavos
+    cash_difference BIGINT,                                        -- centavos
     metadata TEXT DEFAULT '{}', -- JSONB
     _status TEXT DEFAULT 'created',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

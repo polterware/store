@@ -100,9 +100,9 @@ CREATE TABLE IF NOT EXISTS products (
     name TEXT NOT NULL,
     slug TEXT UNIQUE NOT NULL,
     gtin_ean TEXT,
-    price REAL NOT NULL CHECK (price >= 0),
-    promotional_price REAL CHECK (promotional_price IS NULL OR promotional_price >= 0),
-    cost_price REAL CHECK (cost_price IS NULL OR cost_price >= 0),
+    price INTEGER NOT NULL CHECK (price >= 0),                     -- centavos
+    promotional_price INTEGER CHECK (promotional_price IS NULL OR promotional_price >= 0),
+    cost_price INTEGER CHECK (cost_price IS NULL OR cost_price >= 0),
     currency TEXT DEFAULT 'BRL',
     tax_ncm TEXT,
     is_shippable INTEGER DEFAULT 1,
@@ -172,8 +172,8 @@ CREATE TABLE IF NOT EXISTS inventory_levels (
     batch_number TEXT,
     serial_number TEXT,
     expiry_date DATE,
-    quantity_on_hand REAL DEFAULT 0,
-    quantity_reserved REAL DEFAULT 0,
+    quantity_on_hand INTEGER DEFAULT 0,
+    quantity_reserved INTEGER DEFAULT 0,
     stock_status TEXT DEFAULT 'sellable' CHECK (stock_status IN ('sellable', 'damaged', 'quarantine', 'expired')),
     aisle_bin_slot TEXT,
     last_counted_at DATETIME,
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS customer_groups (
     price_list_id TEXT,
     tax_class TEXT,
     allowed_payment_methods TEXT, -- TEXT[]
-    min_order_amount REAL DEFAULT 0,
+    min_order_amount INTEGER DEFAULT 0,                            -- centavos
     metadata TEXT DEFAULT '{}', -- JSONB
     _status TEXT DEFAULT 'created',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS customers (
     tags TEXT, -- TEXT[]
     accepts_marketing INTEGER DEFAULT 0,
     customer_group_id TEXT REFERENCES customer_groups(id) ON DELETE SET NULL,
-    total_spent REAL DEFAULT 0 CHECK (total_spent >= 0),
+    total_spent INTEGER DEFAULT 0 CHECK (total_spent >= 0),        -- centavos
     orders_count INTEGER DEFAULT 0 CHECK (orders_count >= 0),
     last_order_at DATETIME,
     notes TEXT,
@@ -308,10 +308,10 @@ CREATE TABLE IF NOT EXISTS transactions (
     supplier_id TEXT,
     staff_id TEXT, -- References users in registry (validated at app layer)
     currency TEXT DEFAULT 'BRL',
-    total_items REAL DEFAULT 0 CHECK (total_items >= 0),
-    total_shipping REAL DEFAULT 0 CHECK (total_shipping >= 0),
-    total_discount REAL DEFAULT 0 CHECK (total_discount >= 0),
-    total_net REAL DEFAULT 0,
+    total_items INTEGER DEFAULT 0 CHECK (total_items >= 0),        -- centavos
+    total_shipping INTEGER DEFAULT 0 CHECK (total_shipping >= 0),  -- centavos
+    total_discount INTEGER DEFAULT 0 CHECK (total_discount >= 0),  -- centavos
+    total_net INTEGER DEFAULT 0,                                    -- centavos
     shipping_method TEXT,
     shipping_address TEXT, -- JSONB
     billing_address TEXT,  -- JSONB
@@ -338,9 +338,9 @@ CREATE TABLE IF NOT EXISTS transaction_items (
     sku_snapshot TEXT,
     name_snapshot TEXT,
     quantity REAL NOT NULL,
-    unit_price REAL NOT NULL,
-    unit_cost REAL,
-    total_line REAL GENERATED ALWAYS AS (quantity * unit_price) STORED,
+    unit_price INTEGER NOT NULL,                                    -- centavos
+    unit_cost INTEGER,                                              -- centavos
+    total_line INTEGER GENERATED ALWAYS AS (CAST(quantity * unit_price AS INTEGER)) STORED,  -- centavos
     attributes_snapshot TEXT, -- JSONB
     tax_details TEXT, -- JSONB
     _status TEXT DEFAULT 'created',
@@ -360,9 +360,9 @@ CREATE TABLE IF NOT EXISTS inventory_movements (
     transaction_id TEXT REFERENCES transactions(id) ON DELETE SET NULL,
     inventory_level_id TEXT REFERENCES inventory_levels(id) ON DELETE RESTRICT,
     type TEXT CHECK (type IN ('in', 'out')),
-    quantity REAL NOT NULL,
-    previous_balance REAL,
-    new_balance REAL,
+    quantity INTEGER NOT NULL,
+    previous_balance INTEGER,
+    new_balance INTEGER,
     _status TEXT DEFAULT 'created',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -378,7 +378,7 @@ CREATE INDEX IF NOT EXISTS idx_inventory_movements_level ON inventory_movements(
 CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     transaction_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE RESTRICT,
-    amount REAL NOT NULL,
+    amount INTEGER NOT NULL,                                        -- centavos
     currency TEXT DEFAULT 'BRL',
     provider TEXT NOT NULL,
     method TEXT NOT NULL,
@@ -407,7 +407,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_provider_transaction ON payments(provide
 CREATE TABLE IF NOT EXISTS refunds (
     id TEXT PRIMARY KEY,
     payment_id TEXT NOT NULL REFERENCES payments(id) ON DELETE RESTRICT,
-    amount REAL NOT NULL,
+    amount INTEGER NOT NULL,                                        -- centavos
     status TEXT DEFAULT 'pending',
     reason TEXT,
     provider_refund_id TEXT,
@@ -435,11 +435,11 @@ CREATE TABLE IF NOT EXISTS checkouts (
     shipping_line TEXT, -- JSONB
     applied_discount_codes TEXT, -- JSONB
     currency TEXT DEFAULT 'BRL',
-    subtotal_price REAL DEFAULT 0,
-    total_tax REAL DEFAULT 0,
-    total_shipping REAL DEFAULT 0,
-    total_discounts REAL DEFAULT 0,
-    total_price REAL DEFAULT 0,
+    subtotal_price INTEGER DEFAULT 0,                               -- centavos
+    total_tax INTEGER DEFAULT 0,                                    -- centavos
+    total_shipping INTEGER DEFAULT 0,                               -- centavos
+    total_discounts INTEGER DEFAULT 0,                              -- centavos
+    total_price INTEGER DEFAULT 0,                                  -- centavos
     status TEXT DEFAULT 'open',
     reservation_expires_at DATETIME,
     completed_at DATETIME,
@@ -465,16 +465,18 @@ CREATE TABLE IF NOT EXISTS orders (
     idempotency_key TEXT UNIQUE,
     channel TEXT DEFAULT 'web',
     customer_id TEXT REFERENCES customers(id) ON DELETE SET NULL,
+    payment_intent_id TEXT UNIQUE,                                 -- Stripe/provider idempotency
+    checkout_id TEXT,                                              -- Link to checkout session
     status TEXT DEFAULT 'open',
     payment_status TEXT DEFAULT 'unpaid',
     fulfillment_status TEXT DEFAULT 'unfulfilled',
     currency TEXT DEFAULT 'BRL',
-    subtotal_price REAL NOT NULL,
-    total_discounts REAL DEFAULT 0,
-    total_tax REAL DEFAULT 0,
-    total_shipping REAL DEFAULT 0,
-    total_tip REAL DEFAULT 0,
-    total_price REAL NOT NULL,
+    subtotal_price INTEGER NOT NULL,                               -- centavos
+    total_discounts INTEGER DEFAULT 0,                             -- centavos
+    total_tax INTEGER DEFAULT 0,                                    -- centavos
+    total_shipping INTEGER DEFAULT 0,                               -- centavos
+    total_tip INTEGER DEFAULT 0,                                    -- centavos
+    total_price INTEGER NOT NULL,                                   -- centavos
     tax_lines TEXT DEFAULT '[]', -- JSONB
     discount_codes TEXT DEFAULT '[]', -- JSONB
     note TEXT,
@@ -497,6 +499,32 @@ CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at) WHERE _statu
 CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number) WHERE _status != 'deleted';
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status) WHERE _status != 'deleted';
 CREATE INDEX IF NOT EXISTS idx_orders_fulfillment_status ON orders(fulfillment_status) WHERE _status != 'deleted';
+CREATE INDEX IF NOT EXISTS idx_orders_payment_intent ON orders(payment_intent_id) WHERE payment_intent_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_checkout_id ON orders(checkout_id) WHERE checkout_id IS NOT NULL;
+
+-- ============================================================
+-- 17b. ORDER ITEMS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    image_url TEXT,
+    price INTEGER NOT NULL,                                        -- centavos
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    size TEXT,
+    sku_snapshot TEXT,
+    attributes_snapshot TEXT,                                       -- JSONB
+    shipping_snapshot TEXT,                                         -- JSONB
+    _status TEXT DEFAULT 'created',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id) WHERE _status != 'deleted';
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id) WHERE _status != 'deleted';
 
 -- ============================================================
 -- 18. SHIPMENTS
@@ -519,8 +547,8 @@ CREATE TABLE IF NOT EXISTS shipments (
     shipping_label_url TEXT,
     invoice_url TEXT,
     invoice_key TEXT,
-    cost_amount REAL,
-    insurance_amount REAL,
+    cost_amount INTEGER,                                            -- centavos
+    insurance_amount INTEGER,                                       -- centavos
     estimated_delivery_at DATETIME,
     shipped_at DATETIME,
     delivered_at DATETIME,
@@ -542,7 +570,7 @@ CREATE INDEX IF NOT EXISTS idx_shipments_tracking ON shipments(tracking_number) 
 CREATE TABLE IF NOT EXISTS shipment_items (
     id TEXT PRIMARY KEY,
     shipment_id TEXT NOT NULL REFERENCES shipments(id) ON DELETE CASCADE,
-    order_item_id TEXT NOT NULL,
+    order_item_id TEXT NOT NULL REFERENCES order_items(id),
     quantity INTEGER NOT NULL,
     batch_number TEXT,
     serial_numbers TEXT, -- TEXT[]
@@ -583,20 +611,20 @@ CREATE TABLE IF NOT EXISTS pos_sessions (
     terminal_id TEXT,
     session_number INTEGER,
     status TEXT DEFAULT 'open' CHECK (status IN ('open', 'paused', 'closed', 'cancelled')),
-    opening_cash_amount REAL DEFAULT 0,
+    opening_cash_amount INTEGER DEFAULT 0,                          -- centavos
     opening_notes TEXT,
     opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    closing_cash_amount REAL,
+    closing_cash_amount INTEGER,                                    -- centavos
     closing_notes TEXT,
     closed_at DATETIME,
     closed_by TEXT, -- References users in registry
-    total_sales REAL DEFAULT 0,
-    total_returns REAL DEFAULT 0,
-    total_cash_in REAL DEFAULT 0,
-    total_cash_out REAL DEFAULT 0,
+    total_sales INTEGER DEFAULT 0,                                  -- centavos
+    total_returns INTEGER DEFAULT 0,                                -- centavos
+    total_cash_in INTEGER DEFAULT 0,                                -- centavos
+    total_cash_out INTEGER DEFAULT 0,                               -- centavos
     transaction_count INTEGER DEFAULT 0,
-    expected_cash_amount REAL,
-    cash_difference REAL,
+    expected_cash_amount INTEGER,                                   -- centavos
+    cash_difference INTEGER,                                        -- centavos
     metadata TEXT DEFAULT '{}', -- JSONB
     _status TEXT DEFAULT 'created',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

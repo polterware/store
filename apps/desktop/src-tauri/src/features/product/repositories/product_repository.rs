@@ -204,8 +204,8 @@ impl ProductRepository {
         brand_id: Option<&str>,
         query: Option<&str>,
         is_shippable: Option<bool>,
-        min_price: Option<f64>,
-        max_price: Option<f64>,
+        min_price: Option<i64>,
+        max_price: Option<i64>,
         limit: i64,
         offset: i64,
     ) -> Result<Vec<Product>> {

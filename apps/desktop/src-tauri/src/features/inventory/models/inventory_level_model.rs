@@ -10,8 +10,8 @@ pub struct InventoryLevel {
     pub batch_number: Option<String>,
     pub serial_number: Option<String>,
     pub expiry_date: Option<String>,
-    pub quantity_on_hand: f64,        // DEFAULT 0
-    pub quantity_reserved: f64,       // DEFAULT 0
+    pub quantity_on_hand: i64,        // DEFAULT 0
+    pub quantity_reserved: i64,       // DEFAULT 0
     pub stock_status: Option<String>, // DEFAULT 'sellable' check constraint
     pub aisle_bin_slot: Option<String>,
     pub last_counted_at: Option<String>,

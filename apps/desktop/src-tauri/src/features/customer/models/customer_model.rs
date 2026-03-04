@@ -23,7 +23,7 @@ pub struct Customer {
     pub tags: Option<String>,            // TEXT[]
     pub accepts_marketing: Option<bool>, // INTEGER DEFAULT 0
     pub customer_group_id: Option<String>,
-    pub total_spent: Option<f64>,  // REAL
+    pub total_spent: Option<i64>,  // centavos
     pub orders_count: Option<i64>, // INTEGER
     pub last_order_at: Option<String>,
     pub notes: Option<String>,

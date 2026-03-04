@@ -216,7 +216,7 @@ impl CustomerRepository {
     pub async fn increment_stats_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         customer_id: &str,
-        amount: f64,
+        amount: i64,
     ) -> Result<Customer> {
         let sql = r#"
             UPDATE customers
@@ -238,7 +238,7 @@ impl CustomerRepository {
     pub async fn decrement_stats_with_tx<'a>(
         tx: &mut DbTransaction<'a>,
         customer_id: &str,
-        amount: f64,
+        amount: i64,
     ) -> Result<Customer> {
         let sql = r#"
             UPDATE customers

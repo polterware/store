@@ -9,7 +9,7 @@ pub struct CreatePosSessionDTO {
     pub location_id: Option<String>,
     pub operator_id: String,
     pub terminal_id: Option<String>,
-    pub opening_cash_amount: Option<f64>,
+    pub opening_cash_amount: Option<i64>, // centavos
     pub opening_notes: Option<String>,
     pub metadata: Option<String>,
 }
@@ -26,17 +26,17 @@ impl CreatePosSessionDTO {
             terminal_id: self.terminal_id,
             session_number: None, // Will be set by the service
             status: Some("open".to_string()),
-            opening_cash_amount: self.opening_cash_amount.or(Some(0.0)),
+            opening_cash_amount: self.opening_cash_amount.or(Some(0)),
             opening_notes: self.opening_notes,
             opened_at: Some(now),
             closing_cash_amount: None,
             closing_notes: None,
             closed_at: None,
             closed_by: None,
-            total_sales: Some(0.0),
-            total_returns: Some(0.0),
-            total_cash_in: Some(0.0),
-            total_cash_out: Some(0.0),
+            total_sales: Some(0),
+            total_returns: Some(0),
+            total_cash_in: Some(0),
+            total_cash_out: Some(0),
             transaction_count: Some(0),
             expected_cash_amount: None,
             cash_difference: None,
@@ -53,10 +53,10 @@ pub struct UpdatePosSessionDTO {
     pub id: String,
     pub terminal_id: Option<String>,
     pub opening_notes: Option<String>,
-    pub total_sales: Option<f64>,
-    pub total_returns: Option<f64>,
-    pub total_cash_in: Option<f64>,
-    pub total_cash_out: Option<f64>,
+    pub total_sales: Option<i64>,    // centavos
+    pub total_returns: Option<i64>,  // centavos
+    pub total_cash_in: Option<i64>,  // centavos
+    pub total_cash_out: Option<i64>, // centavos
     pub transaction_count: Option<i32>,
     pub metadata: Option<String>,
 }
@@ -98,7 +98,7 @@ impl UpdatePosSessionDTO {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClosePosSessionDTO {
     pub id: String,
-    pub closing_cash_amount: f64,
+    pub closing_cash_amount: i64, // centavos
     pub closing_notes: Option<String>,
     pub closed_by: String,
 }
@@ -108,11 +108,11 @@ impl ClosePosSessionDTO {
         let now = Utc::now();
 
         // Calculate expected cash amount
-        let opening = existing.opening_cash_amount.unwrap_or(0.0);
-        let sales = existing.total_sales.unwrap_or(0.0);
-        let returns = existing.total_returns.unwrap_or(0.0);
-        let cash_in = existing.total_cash_in.unwrap_or(0.0);
-        let cash_out = existing.total_cash_out.unwrap_or(0.0);
+        let opening = existing.opening_cash_amount.unwrap_or(0);
+        let sales = existing.total_sales.unwrap_or(0);
+        let returns = existing.total_returns.unwrap_or(0);
+        let cash_in = existing.total_cash_in.unwrap_or(0);
+        let cash_out = existing.total_cash_out.unwrap_or(0);
         let expected_cash = opening + sales - returns + cash_in - cash_out;
         let cash_difference = self.closing_cash_amount - expected_cash;
 

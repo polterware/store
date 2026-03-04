@@ -94,7 +94,7 @@ impl ShopInventoryService {
     pub async fn adjust_quantity(
         &self,
         id: &str,
-        quantity_change: f64,
+        quantity_change: i64,
     ) -> Result<InventoryLevel, String> {
         self.repo
             .adjust_quantity(id, quantity_change)
@@ -105,7 +105,7 @@ impl ShopInventoryService {
     pub async fn reserve_quantity(
         &self,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel, String> {
         self.repo
             .reserve_quantity(id, quantity)
@@ -116,7 +116,7 @@ impl ShopInventoryService {
     pub async fn release_reservation(
         &self,
         id: &str,
-        quantity: f64,
+        quantity: i64,
     ) -> Result<InventoryLevel, String> {
         self.repo
             .release_reservation(id, quantity)

@@ -31,7 +31,7 @@ struct ShopCustomer {
     pub tags: Option<String>,
     pub accepts_marketing: Option<bool>,
     pub customer_group_id: Option<String>,
-    pub total_spent: Option<f64>,
+    pub total_spent: Option<i64>,
     pub orders_count: Option<i64>,
     pub last_order_at: Option<String>,
     pub notes: Option<String>,
@@ -326,7 +326,7 @@ impl ShopCustomerRepository {
     pub async fn increment_stats_in_tx(
         tx: &mut Transaction<'_, Any>,
         customer_id: &str,
-        amount: f64,
+        amount: i64,
         shop_id: String,
     ) -> Result<Customer> {
         let sql = r#"
@@ -351,7 +351,7 @@ impl ShopCustomerRepository {
     pub async fn decrement_stats_in_tx(
         tx: &mut Transaction<'_, Any>,
         customer_id: &str,
-        amount: f64,
+        amount: i64,
         shop_id: String,
     ) -> Result<Customer> {
         let sql = r#"

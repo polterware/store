@@ -9,7 +9,7 @@ pub async fn create_refund(
     _repo_factory: State<'_, Arc<RepositoryFactory>>,
     _shop_id: String,
     _payment_id: String,
-    _amount: f64,
+    _amount: i64,
     _reason: Option<String>,
 ) -> Result<Refund, String> {
     // Refunds are created through the payment service process_refund method

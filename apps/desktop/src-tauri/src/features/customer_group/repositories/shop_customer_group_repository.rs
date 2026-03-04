@@ -20,7 +20,7 @@ struct ShopCustomerGroup {
     pub price_list_id: Option<String>,
     pub tax_class: Option<String>,
     pub allowed_payment_methods: Option<String>,
-    pub min_order_amount: Option<f64>,
+    pub min_order_amount: Option<i64>,
     pub metadata: Option<String>,
     #[serde(rename = "_status")]
     #[sqlx(rename = "_status")]

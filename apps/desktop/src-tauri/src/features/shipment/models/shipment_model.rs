@@ -20,8 +20,8 @@ pub struct Shipment {
     pub shipping_label_url: Option<String>,
     pub invoice_url: Option<String>,
     pub invoice_key: Option<String>,
-    pub cost_amount: Option<f64>,
-    pub insurance_amount: Option<f64>,
+    pub cost_amount: Option<i64>,      // centavos
+    pub insurance_amount: Option<i64>, // centavos
     pub estimated_delivery_at: Option<String>,
     pub shipped_at: Option<String>,
     pub delivered_at: Option<String>,

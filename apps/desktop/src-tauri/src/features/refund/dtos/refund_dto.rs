@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRefundDTO {
     pub payment_id: String,
-    pub amount: f64,
+    pub amount: i64,
     pub status: Option<String>,
     pub reason: Option<String>,
     pub provider_refund_id: Option<String>,
@@ -34,7 +34,7 @@ impl CreateRefundDTO {
 pub struct UpdateRefundDTO {
     pub id: String,
     pub payment_id: Option<String>,
-    pub amount: Option<f64>,
+    pub amount: Option<i64>,
     pub status: Option<String>,
     pub reason: Option<String>,
     pub provider_refund_id: Option<String>,

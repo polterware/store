@@ -15,7 +15,7 @@ pub struct CreateCustomerGroupDTO {
     pub price_list_id: Option<String>,
     pub tax_class: Option<String>,
     pub allowed_payment_methods: Option<String>,
-    pub min_order_amount: Option<f64>,
+    pub min_order_amount: Option<i64>,
     pub metadata: Option<String>,
 }
 
@@ -34,7 +34,7 @@ impl CreateCustomerGroupDTO {
             price_list_id: self.price_list_id,
             tax_class: self.tax_class,
             allowed_payment_methods: self.allowed_payment_methods,
-            min_order_amount: self.min_order_amount.or(Some(0.0)),
+            min_order_amount: self.min_order_amount.or(Some(0)),
             metadata: self.metadata.or_else(|| Some("{}".to_string())),
             sync_status: Some("created".to_string()),
             created_at: Some(now),
@@ -56,7 +56,7 @@ pub struct UpdateCustomerGroupDTO {
     pub price_list_id: Option<String>,
     pub tax_class: Option<String>,
     pub allowed_payment_methods: Option<String>,
-    pub min_order_amount: Option<f64>,
+    pub min_order_amount: Option<i64>,
     pub metadata: Option<String>,
     pub sync_status: Option<String>,
 }

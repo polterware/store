@@ -1,6 +1,7 @@
 // Entity types
 export * from "./products";
 export * from "./orders";
+export * from "./order-items";
 export * from "./customers";
 export * from "./customer-addresses";
 export * from "./customer-groups";
