@@ -99,13 +99,13 @@ function RootLayout() {
 
   if (isLoginPage) {
     return (
-      <div className="h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
         <div
           data-tauri-drag-region
-          className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+          className="h-6 w-full shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
         />
 
-        <main className="mx-auto w-full max-w-md p-6">
+        <main className="mx-auto w-full max-w-md flex-1 overflow-auto p-6">
           <Outlet />
         </main>
       </div>
@@ -113,17 +113,17 @@ function RootLayout() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <div
         data-tauri-drag-region
-        className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+        className="h-6 w-full shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
       />
 
-      <SidebarProvider defaultOpen>
+      <SidebarProvider defaultOpen className="flex-1 overflow-hidden">
         <AppSidebar pathname={location.pathname} />
 
         <SidebarInset>
-          <header className="border-b border-border bg-background/95 backdrop-blur">
+          <header className="shrink-0 border-b border-border bg-background/95 backdrop-blur">
             <div className="flex w-full items-center justify-between gap-4 px-4 py-2 md:px-6">
               <div className="flex min-w-0 items-center gap-2">
                 <SidebarTrigger className="shrink-0" />
