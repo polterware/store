@@ -30,7 +30,7 @@ Open-source project to help people manage their businesses using a desktop app (
 - Rust toolchain (for Tauri desktop build)
 - Tauri system dependencies (see Tauri docs for your OS)
 - Supabase CLI (`supabase`)
-- Docker (optional, only for `local-reset` mode)
+- Docker (optional, only for `db local-reset` mode)
 
 ## Recommended Knowledge
 
@@ -38,64 +38,46 @@ It is extremely recommended to have solid software engineering knowledge to use 
 
 ## Quick Start
 
-1. Install dependencies:
-
 ```bash
 pnpm install
+pnpm uru setup
 ```
 
-2. Configure environment in `.env.local`:
+The setup wizard will check prerequisites, create `.env.local` interactively, install dependencies, link your Supabase project, and push migrations.
+
+Once setup is done:
 
 ```bash
-cat <<'EOF' > .env.local
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=YOUR_PUBLISHABLE_KEY
-EOF
+pnpm uru dev
 ```
 
-3. Link and reset/apply schema on the linked Supabase project:
+## CLI Commands
 
-```bash
-./setup_database_and_data.sh linked-reset
-```
+All project operations go through the `pnpm uru` CLI:
 
-4. Run desktop app:
+| Command | Description |
+|---------|-------------|
+| `pnpm uru` | Interactive menu |
+| `pnpm uru setup` | First-time setup wizard |
+| `pnpm uru dev` | Start dev server (web or desktop) |
+| `pnpm uru db` | Database operations menu |
+| `pnpm uru db push` | Push migrations (non-destructive) |
+| `pnpm uru db lint` | Lint migrations |
+| `pnpm uru db reset` | Reset linked remote DB (destructive, requires confirmation) |
+| `pnpm uru db local-reset` | Reset local Docker stack |
+| `pnpm uru check` | Run Prettier + ESLint fix |
+| `pnpm uru --help` | Show all commands |
 
-```bash
-pnpm dev
-```
+### Database flags
 
-5. Optional web-only development mode:
+- `--relink` — force `supabase link` before running db commands
+- `SUPABASE_DB_PASSWORD` env var — avoid password prompts during link/reset/push
 
-```bash
-pnpm dev:web
-```
+## Other Scripts
 
-## Database Workflow
-
-`setup_database_and_data.sh` supports:
-
-- `linked-reset` (default): reset linked remote DB and reapply local migrations
-- `linked-push`: push pending migrations to linked remote DB (no full reset)
-- `linked-lint`: run migration lint checks in linked project
-- `local-reset`: reset local Supabase stack (`supabase start`/Docker required)
-
-Useful flags and env vars:
-
-- `--relink` or `URU_FORCE_RELINK=YES`: force `supabase link`
-- `SUPABASE_DB_PASSWORD`: avoid repeated password prompts
-- `URU_CONFIRM_RESET=YES`: skip interactive reset confirmation (CI/automation only)
-
-## Scripts
-
-- `pnpm dev`: run desktop app (Tauri)
-- `pnpm dev:web`: run web app only on port `3000`
-- `pnpm build`: production web build
-- `pnpm preview`: preview build output
-- `pnpm test`: run tests via Vitest
-- `pnpm lint`: run ESLint
-- `pnpm format`: run Prettier
-- `pnpm check`: format and auto-fix lint issues
+- `pnpm build` — production web build
+- `pnpm preview` — preview build output
+- `pnpm test` — run tests via Vitest
 
 ## Project Structure
 
@@ -104,6 +86,7 @@ Useful flags and env vars:
 - `src/lib/db/repositories`: data-access layer over Supabase
 - `supabase/migrations`: schema, RLS policies, and RPC contract
 - `src-tauri/src/lib.rs`: desktop shell (no business DB ownership)
+- `cli/`: interactive CLI toolkit
 
 ## Security Model
 
