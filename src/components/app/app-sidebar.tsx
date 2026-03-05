@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
+import type { SchemaTableName } from '@/lib/schema-registry'
 
 import {
   Sidebar,
@@ -15,8 +16,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
-import { SCHEMA_TABLE_GROUPS, SCHEMA_TABLES } from '@/lib/schema-tables'
-import type { SchemaTableName } from '@/lib/schema-registry'
+import { SCHEMA_TABLE_GROUPS } from '@/lib/schema-tables'
+import { SCHEMA_TABLES } from '@/lib/schema-tables'
 
 type AppSidebarProps = {
   pathname: string

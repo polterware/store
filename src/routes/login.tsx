@@ -12,7 +12,7 @@ export const Route = createFileRoute('/login')({
   beforeLoad: async () => {
     const session = await getSession()
     if (session) {
-      throw redirect({ to: '/products' })
+      throw redirect({ to: '/tables/$table', params: { table: 'products' } })
     }
   },
   component: LoginPage,
@@ -32,7 +32,7 @@ function LoginPage() {
 
     try {
       await signInWithPassword(email, password)
-      await navigate({ to: '/products' })
+      await navigate({ to: '/tables/$table', params: { table: 'products' } })
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to sign in')
     } finally {

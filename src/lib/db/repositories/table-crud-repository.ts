@@ -1,6 +1,6 @@
+import type { Database } from '@/types/database'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { handleSupabaseError } from '@/lib/supabase/errors'
-import type { Database } from '@/types/database'
 
 export type TableName = keyof Database['public']['Tables']
 
@@ -86,7 +86,7 @@ export const TableCrudRepository = {
       handleSupabaseError(error)
     }
 
-    return (data ?? []) as Array<TableRow<TTable>>
+    return data as Array<TableRow<TTable>>
   },
 
   async create<TTable extends TableName>(
@@ -184,7 +184,7 @@ export const TableCrudRepository = {
       handleSupabaseError(error)
     }
 
-    const rows = (data ?? []) as Array<Record<string, unknown>>
+    const rows = data as Array<Record<string, unknown>>
 
     return rows
       .map((row) => {

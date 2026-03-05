@@ -1,8 +1,11 @@
 import { HeadContent, Link, Outlet, Scripts, createRootRoute, useLocation, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import appCss from '../styles.css?url'
+import { AppSidebar } from '@/components/app/app-sidebar'
 import { Button } from '@/components/ui/button'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { getTableConfig } from '@/lib/schema-registry'
 import { getSession, signOut } from '@/lib/supabase/auth'
 import { getSupabaseClient } from '@/lib/supabase/client'
 
@@ -72,29 +75,60 @@ function RootLayout() {
 
   const isLoginPage = location.pathname === '/login'
 
+  const pageTitle = useMemo(() => {
+    if (location.pathname === '/settings') {
+      return 'Configurações'
+    }
+
+    if (location.pathname.startsWith('/tables/')) {
+      const tableName = location.pathname.replace('/tables/', '')
+      const tableConfig = getTableConfig(tableName)
+      if (tableConfig) {
+        return `${tableConfig.label} (${tableConfig.table})`
+      }
+
+      return 'Tabela'
+    }
+
+    return 'Urú'
+  }, [location.pathname])
+
+  if (isLoginPage) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <div
+          data-tauri-drag-region
+          className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+        />
+
+        <main className="mx-auto w-full max-w-md p-6">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div
         data-tauri-drag-region
         className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
       />
-      <header className="border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-2">
-          <span className="truncate text-xl font-brand">Urú</span>
-          {!isLoginPage && (
-            <nav className="flex items-center gap-4 text-sm">
-              <Link to="/products" className="text-muted-foreground transition-colors hover:text-foreground">
-                Products
-              </Link>
-              <Link to="/orders" className="text-muted-foreground transition-colors hover:text-foreground">
-                Orders
-              </Link>
-              <Link to="/inventory" className="text-muted-foreground transition-colors hover:text-foreground">
-                Inventory
-              </Link>
-              <Link to="/settings" className="text-muted-foreground transition-colors hover:text-foreground">
-                Settings
-              </Link>
+
+      <SidebarProvider defaultOpen>
+        <AppSidebar pathname={location.pathname} />
+
+        <SidebarInset>
+          <header className="border-b border-border bg-background/95 backdrop-blur">
+            <div className="flex w-full items-center justify-between gap-4 px-4 py-2 md:px-6">
+              <div className="flex min-w-0 items-center gap-2">
+                <SidebarTrigger className="shrink-0" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{pageTitle}</p>
+                  <p className="text-muted-foreground hidden text-xs sm:block">Console de dados orientado ao schema</p>
+                </div>
+              </div>
+
               {isAuthenticated ? (
                 <Button
                   type="button"
@@ -105,21 +139,23 @@ function RootLayout() {
                     await navigate({ to: '/login' })
                   }}
                 >
-                  Sign out
+                  Sair
                 </Button>
               ) : (
                 <Button asChild size="sm" variant="outline">
-                  <Link to="/login">Sign in</Link>
+                  <Link to="/login">Entrar</Link>
                 </Button>
               )}
-            </nav>
-          )}
-        </div>
-      </header>
+            </div>
+          </header>
 
-      <main className="mx-auto w-full max-w-6xl p-6">
-        <Outlet />
-      </main>
+          <main className="flex-1 overflow-auto">
+            <div className="mx-auto w-full max-w-7xl p-6">
+              <Outlet />
+            </div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }
