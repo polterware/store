@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
+import type { AnalyticsDashboardData, AnalyticsRangeKey } from '@/types/analytics'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
@@ -18,7 +19,6 @@ import { ANALYTICS_RANGE_OPTIONS, DEFAULT_ANALYTICS_RANGE } from '@/lib/analytic
 import { AnalyticsDashboardRepository } from '@/lib/db/repositories'
 import { formatCurrency, formatDate } from '@/lib/formatters'
 import { getUser } from '@/lib/supabase/auth'
-import type { AnalyticsDashboardData, AnalyticsRangeKey } from '@/types/analytics'
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: 'Pendente',

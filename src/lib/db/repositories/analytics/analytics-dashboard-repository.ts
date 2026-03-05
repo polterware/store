@@ -1,3 +1,9 @@
+import { CheckoutAnalyticsRepository } from './checkout-analytics-repository'
+import { InventoryAnalyticsRepository } from './inventory-analytics-repository'
+import { OperationsAnalyticsRepository } from './operations-analytics-repository'
+import { PaymentsAnalyticsRepository } from './payments-analytics-repository'
+import { ProductsAnalyticsRepository } from './products-analytics-repository'
+import { SalesAnalyticsRepository } from './sales-analytics-repository'
 import { resolveAnalyticsRange } from '@/lib/analytics/analytics-range'
 import type {
   AnalyticsDashboardData,
@@ -10,12 +16,6 @@ import type {
   ProductsAnalyticsData,
   SalesAnalyticsData,
 } from '@/types/analytics'
-import { CheckoutAnalyticsRepository } from './checkout-analytics-repository'
-import { InventoryAnalyticsRepository } from './inventory-analytics-repository'
-import { OperationsAnalyticsRepository } from './operations-analytics-repository'
-import { PaymentsAnalyticsRepository } from './payments-analytics-repository'
-import { ProductsAnalyticsRepository } from './products-analytics-repository'
-import { SalesAnalyticsRepository } from './sales-analytics-repository'
 
 const EMPTY_SALES_DATA: SalesAnalyticsData = {
   overview: {

@@ -1,7 +1,10 @@
 import { Link } from '@tanstack/react-router'
+import { ChevronDownIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import type { SchemaTableName } from '@/lib/schema-registry'
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   Sidebar,
   SidebarContent,
@@ -75,37 +78,38 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Modules</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {APP_NAV_ITEMS.map((item) => {
-                if ('table' in item) {
-                  const isActive = pathname === `/tables/${item.table}`
+            <SidebarSectionDropdown title="Modules">
+              <SidebarMenu>
+                {APP_NAV_ITEMS.map((item) => {
+                  if ('table' in item) {
+                    const isActive = pathname === `/tables/${item.table}`
+
+                    return (
+                      <SidebarMenuItem key={item.table}>
+                        <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                          <Link to="/tables/$table" params={{ table: item.table }}>
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  }
+
+                  const isActive = pathname === item.route
 
                   return (
-                    <SidebarMenuItem key={item.table}>
+                    <SidebarMenuItem key={item.route}>
                       <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                        <Link to="/tables/$table" params={{ table: item.table }}>
+                        <Link to={item.route}>
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
-                }
-
-                const isActive = pathname === item.route
-
-                return (
-                  <SidebarMenuItem key={item.route}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                      <Link to={item.route}>
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
+                })}
+              </SidebarMenu>
+            </SidebarSectionDropdown>
           </SidebarGroupContent>
         </SidebarGroup>
 
@@ -118,8 +122,7 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
               <p className="text-muted-foreground px-2 text-xs">No tables found for the current filter.</p>
             ) : (
               filteredGroups.map((group) => (
-                <div key={group.key} className="space-y-1">
-                  <p className="text-muted-foreground px-2 text-[11px] font-medium uppercase tracking-wide">{group.label}</p>
+                <SidebarSectionDropdown key={group.key} title={group.label}>
                   <SidebarMenu>
                     {group.tables.map((table) => {
                       const tablePath = `/tables/${table.name}`
@@ -135,12 +138,38 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
                       )
                     })}
                   </SidebarMenu>
-                </div>
+                </SidebarSectionDropdown>
               ))
             )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
+  )
+}
+
+type SidebarSectionDropdownProps = {
+  children: ReactNode
+  title: string
+}
+
+function SidebarSectionDropdown({ children, title }: SidebarSectionDropdownProps) {
+  const [open, setOpen] = useState(true)
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between px-2 text-[11px] font-medium uppercase tracking-wide transition-colors"
+        >
+          <span>{title}</span>
+          <ChevronDownIcon className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-1">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
