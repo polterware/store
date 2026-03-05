@@ -6,12 +6,14 @@ set -euo pipefail
 # Modes:
 #   linked-reset (default): reset remote linked project and apply local migrations
 #   linked-push:            push local migrations to remote linked project (no full reset)
+#   linked-lint:            run lint against remote linked project
 #   local-reset:            reset local docker stack (requires supabase start/docker)
 #
 # Usage:
 #   ./setup_database_and_data.sh
 #   ./setup_database_and_data.sh linked-reset
 #   ./setup_database_and_data.sh linked-push
+#   ./setup_database_and_data.sh linked-lint
 #   ./setup_database_and_data.sh local-reset
 #
 # Safety:
@@ -33,15 +35,34 @@ if [[ ! -d "$SUPABASE_DIR/migrations" ]]; then
   exit 1
 fi
 
-DB_PASSWORD_ARGS=()
-if [[ -n "${SUPABASE_DB_PASSWORD:-}" ]]; then
-  DB_PASSWORD_ARGS+=(--password "$SUPABASE_DB_PASSWORD")
-fi
+run_link() {
+  if [[ -n "${SUPABASE_DB_PASSWORD:-}" ]]; then
+    supabase link --password "$SUPABASE_DB_PASSWORD"
+  else
+    supabase link
+  fi
+}
+
+run_db_reset_linked() {
+  if [[ -n "${SUPABASE_DB_PASSWORD:-}" ]]; then
+    supabase db reset --linked --password "$SUPABASE_DB_PASSWORD"
+  else
+    supabase db reset --linked
+  fi
+}
+
+run_db_push_linked() {
+  if [[ -n "${SUPABASE_DB_PASSWORD:-}" ]]; then
+    supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+  else
+    supabase db push --linked
+  fi
+}
 
 case "$MODE" in
   linked-reset)
     echo "1) Linking project (if needed)"
-    supabase link "${DB_PASSWORD_ARGS[@]}"
+    run_link
 
     echo "2) Backup reminder"
     echo "Before running reset, ensure a backup was exported from the current Dost project."
@@ -57,15 +78,23 @@ case "$MODE" in
     fi
 
     echo "3) Running remote migration reset (--linked)"
-    supabase db reset --linked "${DB_PASSWORD_ARGS[@]}"
+    run_db_reset_linked
     ;;
 
   linked-push)
     echo "1) Linking project (if needed)"
-    supabase link "${DB_PASSWORD_ARGS[@]}"
+    run_link
 
     echo "2) Applying pending migrations to linked project"
-    supabase db push --linked "${DB_PASSWORD_ARGS[@]}"
+    run_db_push_linked
+    ;;
+
+  linked-lint)
+    echo "1) Linking project (if needed)"
+    run_link
+
+    echo "2) Running lint in linked project"
+    supabase db lint --linked
     ;;
 
   local-reset)

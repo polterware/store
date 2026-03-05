@@ -13,24 +13,6 @@ as $$
   select auth.uid();
 $$;
 
-create or replace function app_private.has_role(required_roles text[])
-returns boolean
-language sql
-stable
-as $$
-  select exists (
-    select 1
-    from public.user_roles ur
-    join public.roles r on r.id = ur.role_id
-    where ur.user_id = auth.uid()
-      and ur.deleted_at is null
-      and ur.lifecycle_status = 'active'
-      and r.deleted_at is null
-      and r.lifecycle_status = 'active'
-      and r.code = any(required_roles)
-  );
-$$;
-
 create or replace function app_private.require_authenticated()
 returns void
 language plpgsql
@@ -40,21 +22,6 @@ as $$
 begin
   if auth.uid() is null then
     raise exception 'Authentication required';
-  end if;
-end;
-$$;
-
-create or replace function app_private.require_operator()
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  perform app_private.require_authenticated();
-
-  if not app_private.has_role(array['admin', 'operator']) then
-    raise exception 'Operator or admin role required';
   end if;
 end;
 $$;
@@ -100,6 +67,39 @@ create table if not exists public.user_roles (
   lifecycle_status text not null default 'active' check (lifecycle_status in ('active', 'inactive', 'archived')),
   unique (user_id, role_id)
 );
+
+create or replace function app_private.has_role(required_roles text[])
+returns boolean
+language sql
+stable
+as $$
+  select exists (
+    select 1
+    from public.user_roles ur
+    join public.roles r on r.id = ur.role_id
+    where ur.user_id = auth.uid()
+      and ur.deleted_at is null
+      and ur.lifecycle_status = 'active'
+      and r.deleted_at is null
+      and r.lifecycle_status = 'active'
+      and r.code = any(required_roles)
+  );
+$$;
+
+create or replace function app_private.require_operator()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform app_private.require_authenticated();
+
+  if not app_private.has_role(array['admin', 'operator']) then
+    raise exception 'Operator or admin role required';
+  end if;
+end;
+$$;
 
 create table if not exists public.app_settings (
   id uuid primary key default gen_random_uuid(),
