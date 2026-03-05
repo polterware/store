@@ -1,2 +1,0 @@
-pub mod customer_group_memberships_repository;
-pub mod shop_customer_group_membership_repository;
