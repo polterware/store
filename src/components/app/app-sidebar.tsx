@@ -21,10 +21,22 @@ type AppSidebarProps = {
   pathname: string
 }
 
-const APP_NAV_ITEMS: Array<{ label: string; table: SchemaTableName }> = [
+type AppNavItem =
+  | {
+      label: string
+      table: SchemaTableName
+    }
+  | {
+      label: string
+      route: '/analytics' | '/settings'
+    }
+
+const APP_NAV_ITEMS: Array<AppNavItem> = [
   { label: 'Products', table: 'products' },
   { label: 'Orders', table: 'orders' },
   { label: 'Inventory', table: 'inventory_levels' },
+  { label: 'Analytics', route: '/analytics' },
+  { label: 'Settings', route: '/settings' },
 ]
 
 export function AppSidebar({ pathname }: AppSidebarProps) {
@@ -67,26 +79,32 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {APP_NAV_ITEMS.map((item) => {
-                const isActive = pathname === `/tables/${item.table}`
+                if ('table' in item) {
+                  const isActive = pathname === `/tables/${item.table}`
+
+                  return (
+                    <SidebarMenuItem key={item.table}>
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+                        <Link to="/tables/$table" params={{ table: item.table }}>
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                }
+
+                const isActive = pathname === item.route
 
                 return (
-                  <SidebarMenuItem key={item.table}>
+                  <SidebarMenuItem key={item.route}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                      <Link to="/tables/$table" params={{ table: item.table }}>
+                      <Link to={item.route}>
                         <span>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
               })}
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
-                  <Link to="/settings">
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

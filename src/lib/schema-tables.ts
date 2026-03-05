@@ -14,11 +14,11 @@ export type SchemaTableGroup = {
 }
 
 const GROUP_LABELS: Record<TableGroup, string> = {
-  identity: 'Identidade e Acesso',
-  catalog: 'Catálogo',
-  crm: 'Clientes e Relacionamento',
-  inventory: 'Estoque e Logística',
-  commerce: 'Checkout e Pedidos',
+  identity: 'Identity & Access',
+  catalog: 'Catalog',
+  crm: 'Customers & Relationship',
+  inventory: 'Inventory & Logistics',
+  commerce: 'Checkout & Orders',
 }
 
 export const SCHEMA_TABLE_GROUPS: Array<SchemaTableGroup> = Object.entries(GROUP_LABELS).map(

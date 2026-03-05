@@ -4,15 +4,15 @@
 
 # URU
 
-Projeto open source para ajudar pessoas a gerirem seus negocios com um app desktop (Tauri + React) integrado ao Supabase.
+Open-source project to help people manage their businesses using a desktop app (Tauri + React) integrated with Supabase.
 
 ## Overview
 
-- Open source, foco em operacoes de negocio (catalogo, CRM, vendas, pagamentos, inventario e governanca)
-- Arquitetura pensada para operacao real: app desktop unico + Supabase como backend
-- Modelo seguro por padrao: JWT, RLS estrita e RPC para fluxos transacionais criticos
-- Sem SQLite local para dados de negocio e sem CRUD de dominio no backend Tauri
-- Escopo atual orientado ao contexto Dost, com schema projetado para ser generalizavel
+- Open source, focused on business operations (catalog, CRM, sales, payments, inventory, and governance)
+- Architecture designed for real operations: single desktop app + Supabase backend
+- Secure-by-default model: JWT, strict RLS, and RPC for critical transactional flows
+- No local SQLite for business data and no domain CRUD in the Tauri backend
+- Current scope is aligned with the Dost context, with a schema designed to be generalizable
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ Projeto open source para ajudar pessoas a gerirem seus negocios com um app deskt
 
 ## Recommended Knowledge
 
-It is extremely recommended to have solid software engineering knowledge before changing this app's architecture, schema, RLS policies, or transactional RPC flows.
+It is strongly recommended to have solid software engineering knowledge before changing this app's architecture, schema, RLS policies, or transactional RPC flows.
 
 ## Quick Start
 

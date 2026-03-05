@@ -77,7 +77,11 @@ function RootLayout() {
 
   const pageTitle = useMemo(() => {
     if (location.pathname === '/settings') {
-      return 'Configurações'
+      return 'Settings'
+    }
+
+    if (location.pathname === '/analytics') {
+      return 'Analytics'
     }
 
     if (location.pathname.startsWith('/tables/')) {
@@ -125,7 +129,7 @@ function RootLayout() {
                 <SidebarTrigger className="shrink-0" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{pageTitle}</p>
-                  <p className="text-muted-foreground hidden text-xs sm:block">Console de dados orientado ao schema</p>
+                  <p className="text-muted-foreground hidden text-xs sm:block">Schema-driven data console</p>
                 </div>
               </div>
 
@@ -139,11 +143,11 @@ function RootLayout() {
                     await navigate({ to: '/login' })
                   }}
                 >
-                  Sair
+                  Sign out
                 </Button>
               ) : (
                 <Button asChild size="sm" variant="outline">
-                  <Link to="/login">Entrar</Link>
+                  <Link to="/login">Sign in</Link>
                 </Button>
               )}
             </div>

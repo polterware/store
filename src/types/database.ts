@@ -1039,6 +1039,149 @@ export interface Database {
         Args: { p_order_id: string; p_status: string; p_payment_status?: string | null; p_fulfillment_status?: string | null }
         Returns: { order_id: string; status: string }
       }
+      analytics_sales_overview: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          gross_sales: number
+          paid_sales: number
+          refunded_amount: number
+          net_sales: number
+          orders_count: number
+          paid_orders_count: number
+          avg_ticket: number
+          cancelled_orders_count: number
+          cancellation_rate: number
+        }>
+      }
+      analytics_sales_timeseries: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_bucket?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          bucket_date: string
+          gross_sales: number
+          paid_sales: number
+          refunded_amount: number
+          net_sales: number
+          orders_count: number
+        }>
+      }
+      analytics_orders_status_breakdown: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          status: string
+          orders_count: number
+          total_amount: number
+        }>
+      }
+      analytics_payments_overview: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          captured_amount: number
+          pending_amount: number
+          failed_amount: number
+          refunded_amount: number
+          net_collected_amount: number
+          payments_count: number
+          captured_payments_count: number
+          failed_payments_count: number
+          payment_success_rate: number
+        }>
+      }
+      analytics_payments_status_breakdown: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          status: string
+          payments_count: number
+          total_amount: number
+        }>
+      }
+      analytics_checkout_funnel: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          stage: string
+          stage_order: number
+          sessions_count: number
+          conversion_rate: number
+        }>
+      }
+      analytics_checkout_timeseries: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_bucket?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          bucket_date: string
+          opened_count: number
+          completed_count: number
+          completion_rate: number
+          completed_amount: number
+        }>
+      }
+      analytics_inventory_overview: {
+        Args: Record<string, never>
+        Returns: Array<{
+          total_skus: number
+          out_of_stock_skus: number
+          low_stock_skus: number
+          healthy_skus: number
+          total_available_units: number
+          total_reserved_units: number
+        }>
+      }
+      analytics_inventory_movements_timeseries: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_bucket?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          bucket_date: string
+          inbound_qty: number
+          outbound_qty: number
+          reservation_qty: number
+          release_qty: number
+          adjustment_qty: number
+        }>
+      }
+      analytics_inventory_low_stock: {
+        Args: { p_limit?: number | null }
+        Returns: Array<{
+          product_id: string
+          sku: string
+          title: string
+          quantity_available: number
+          reorder_point: number
+          location_name: string
+        }>
+      }
+      analytics_products_top_revenue: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_limit?: number | null; p_timezone?: string | null }
+        Returns: Array<{
+          product_id: string
+          sku: string
+          title: string
+          units_sold: number
+          revenue: number
+          orders_count: number
+          avg_unit_price: number
+        }>
+      }
+      analytics_products_conversion: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_limit?: number | null }
+        Returns: Array<{
+          product_id: string
+          sku: string
+          title: string
+          views: number
+          add_to_cart: number
+          sales_count: number
+          view_to_cart_rate: number
+          cart_to_sale_rate: number
+        }>
+      }
+      analytics_operations_overview: {
+        Args: { p_start_date?: string | null; p_end_date?: string | null; p_timezone?: string | null }
+        Returns: Array<{
+          open_inquiries_count: number
+          pending_inquiries_count: number
+          resolved_inquiries_count: number
+          pending_reviews_count: number
+          approved_reviews_count: number
+          avg_rating: number
+        }>
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
