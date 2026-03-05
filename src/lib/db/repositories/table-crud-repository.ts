@@ -1,66 +1,76 @@
-import type { Database } from '@/types/database'
-import { getSupabaseClient } from '@/lib/supabase/client'
-import { handleSupabaseError } from '@/lib/supabase/errors'
+import type { Database } from "@/types/database";
+import { getSupabaseClient } from "@/lib/supabase/client";
+import { handleSupabaseError } from "@/lib/supabase/errors";
 
-export type TableName = keyof Database['public']['Tables']
+export type TableName = keyof Database["public"]["Tables"];
 
-export type TableRow<TTable extends TableName> = Database['public']['Tables'][TTable]['Row']
+export type TableRow<TTable extends TableName> =
+  Database["public"]["Tables"][TTable]["Row"];
 
-export type TableInsert<TTable extends TableName> = Database['public']['Tables'][TTable]['Insert']
+export type TableInsert<TTable extends TableName> =
+  Database["public"]["Tables"][TTable]["Insert"];
 
-export type TableUpdate<TTable extends TableName> = Database['public']['Tables'][TTable]['Update']
+export type TableUpdate<TTable extends TableName> =
+  Database["public"]["Tables"][TTable]["Update"];
 
 export type TableLookupOption = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 export type ListOptions = {
-  includeArchived?: boolean
-  orderBy?: string
-  ascending?: boolean
-}
+  includeArchived?: boolean;
+  orderBy?: string;
+  ascending?: boolean;
+};
 
 export type PayloadOptions = {
-  nullableFields?: Array<string>
-}
+  nullableFields?: Array<string>;
+};
 
 export type LookupOptions = {
-  valueField: string
-  labelField: string
-  includeArchived?: boolean
-  orderBy?: string
-  ascending?: boolean
-}
+  valueField: string;
+  labelField: string;
+  includeArchived?: boolean;
+  orderBy?: string;
+  ascending?: boolean;
+};
 
-function normalizePayloadValue(value: unknown, nullableFields: Set<string>, key: string): unknown {
+function normalizePayloadValue(
+  value: unknown,
+  nullableFields: Set<string>,
+  key: string,
+): unknown {
   if (value === undefined) {
-    return undefined
+    return undefined;
   }
 
-  if (value === '' && nullableFields.has(key)) {
-    return null
+  if (value === "" && nullableFields.has(key)) {
+    return null;
   }
 
-  return value
+  return value;
 }
 
 export function normalizePayload(
   payload: Record<string, unknown>,
   options?: PayloadOptions,
 ): Record<string, unknown> {
-  const normalizedEntries = Object.entries(payload)
-  const nullableFields = new Set(options?.nullableFields ?? [])
+  const normalizedEntries = Object.entries(payload);
+  const nullableFields = new Set(options?.nullableFields ?? []);
 
-  return normalizedEntries.reduce<Record<string, unknown>>((acc, [key, value]) => {
-    const normalizedValue = normalizePayloadValue(value, nullableFields, key)
+  return normalizedEntries.reduce<Record<string, unknown>>(
+    (acc, [key, value]) => {
+      const normalizedValue = normalizePayloadValue(value, nullableFields, key);
 
-    if (normalizedValue !== undefined) {
-      acc[key] = normalizedValue
-    }
+      if (normalizedValue !== undefined) {
+        acc[key] = normalizedValue;
+      }
 
-    return acc
-  }, {})
+      return acc;
+    },
+    {},
+  );
 }
 
 export const TableCrudRepository = {
@@ -68,25 +78,27 @@ export const TableCrudRepository = {
     table: TTable,
     options?: ListOptions,
   ): Promise<Array<TableRow<TTable>>> {
-    const supabase = getSupabaseClient() as any
+    const supabase = getSupabaseClient() as any;
 
-    let query = supabase.from(table).select('*')
+    let query = supabase.from(table).select("*");
 
     if (!options?.includeArchived) {
-      query = query.is('deleted_at', null)
+      query = query.is("deleted_at", null);
     }
 
     if (options?.orderBy) {
-      query = query.order(options.orderBy, { ascending: options.ascending ?? false })
+      query = query.order(options.orderBy, {
+        ascending: options.ascending ?? false,
+      });
     }
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
 
-    return (data ?? []) as Array<TableRow<TTable>>
+    return (data ?? []) as Array<TableRow<TTable>>;
   },
 
   async create<TTable extends TableName>(
@@ -94,20 +106,20 @@ export const TableCrudRepository = {
     payload: Record<string, unknown>,
     options?: PayloadOptions,
   ): Promise<TableRow<TTable>> {
-    const supabase = getSupabaseClient() as any
-    const normalizedPayload = normalizePayload(payload, options)
+    const supabase = getSupabaseClient() as any;
+    const normalizedPayload = normalizePayload(payload, options);
 
     const { data, error } = await supabase
       .from(table)
       .insert(normalizedPayload as TableInsert<TTable>)
-      .select('*')
-      .single()
+      .select("*")
+      .single();
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
 
-    return data as TableRow<TTable>
+    return data as TableRow<TTable>;
   },
 
   async update<TTable extends TableName>(
@@ -116,47 +128,53 @@ export const TableCrudRepository = {
     payload: Record<string, unknown>,
     options?: PayloadOptions,
   ): Promise<TableRow<TTable>> {
-    const supabase = getSupabaseClient() as any
-    const normalizedPayload = normalizePayload(payload, options)
+    const supabase = getSupabaseClient() as any;
+    const normalizedPayload = normalizePayload(payload, options);
 
     const { data, error } = await supabase
       .from(table)
       .update(normalizedPayload as TableUpdate<TTable>)
-      .eq('id', id)
-      .select('*')
-      .single()
+      .eq("id", id)
+      .select("*")
+      .single();
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
 
-    return data as TableRow<TTable>
+    return data as TableRow<TTable>;
   },
 
-  async archive<TTable extends TableName>(table: TTable, id: string): Promise<void> {
-    const supabase = getSupabaseClient() as any
+  async archive<TTable extends TableName>(
+    table: TTable,
+    id: string,
+  ): Promise<void> {
+    const supabase = getSupabaseClient() as any;
 
     const { error } = await supabase
       .from(table)
       .update({
         deleted_at: new Date().toISOString(),
-        lifecycle_status: 'archived',
+        lifecycle_status: "archived",
       } as TableUpdate<TTable>)
-      .eq('id', id)
-      .is('deleted_at', null)
+      .eq("id", id)
+      .is("deleted_at", null);
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
   },
 
-  async hardDelete<TTable extends TableName>(table: TTable, id: string): Promise<void> {
-    const supabase = getSupabaseClient() as any
+  async hardDelete<TTable extends TableName>(
+    table: TTable,
+    id: string,
+  ): Promise<void> {
+    const supabase = getSupabaseClient() as any;
 
-    const { error } = await supabase.from(table).delete().eq('id', id)
+    const { error } = await supabase.from(table).delete().eq("id", id);
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
   },
 
@@ -164,42 +182,44 @@ export const TableCrudRepository = {
     table: TTable,
     options: LookupOptions,
   ): Promise<Array<TableLookupOption>> {
-    const supabase = getSupabaseClient() as any
+    const supabase = getSupabaseClient() as any;
 
     let query = supabase
       .from(table)
-      .select(`${options.valueField}, ${options.labelField}`)
+      .select(`${options.valueField}, ${options.labelField}`);
 
     if (!options.includeArchived) {
-      query = query.is('deleted_at', null)
+      query = query.is("deleted_at", null);
     }
 
     if (options.orderBy) {
-      query = query.order(options.orderBy, { ascending: options.ascending ?? true })
+      query = query.order(options.orderBy, {
+        ascending: options.ascending ?? true,
+      });
     }
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
     if (error) {
-      handleSupabaseError(error)
+      handleSupabaseError(error);
     }
 
-    const rows = (data ?? []) as Array<Record<string, unknown>>
+    const rows = (data ?? []) as Array<Record<string, unknown>>;
 
     return rows
       .map((row) => {
-        const value = row[options.valueField]
+        const value = row[options.valueField];
         if (!value) {
-          return null
+          return null;
         }
 
-        const label = row[options.labelField]
+        const label = row[options.labelField];
 
         return {
           value: String(value),
           label: label ? String(label) : String(value),
-        }
+        };
       })
-      .filter((option): option is TableLookupOption => option !== null)
+      .filter((option): option is TableLookupOption => option !== null);
   },
-}
+};

@@ -1,29 +1,44 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from "vitest";
 
-import * as schemaRegistry from '@/lib/schema-registry'
+import * as schemaRegistry from "@/lib/schema-registry";
 
-describe('schema registry', () => {
-  it('covers all 28 tables from the schema contract', () => {
-    expect(schemaRegistry.SCHEMA_REGISTRY).toHaveLength(28)
-    expect(new Set(schemaRegistry.SCHEMA_TABLE_NAMES).size).toBe(28)
-  })
+describe("schema registry", () => {
+  it("covers all 28 tables from the schema contract", () => {
+    expect(schemaRegistry.SCHEMA_REGISTRY).toHaveLength(28);
+    expect(new Set(schemaRegistry.SCHEMA_TABLE_NAMES).size).toBe(28);
+  });
 
-  it('defaults to soft delete strategy for every table in this phase', () => {
-    expect(schemaRegistry.SCHEMA_REGISTRY.every((table) => table.deleteStrategy === 'soft')).toBe(true)
-  })
+  it("defaults to soft delete strategy for every table in this phase", () => {
+    expect(
+      schemaRegistry.SCHEMA_REGISTRY.every(
+        (table) => table.deleteStrategy === "soft",
+      ),
+    ).toBe(true);
+  });
 
-  it('exposes products table metadata with foreign key relation fields', () => {
-    const products = schemaRegistry.getTableConfig('products')
+  it("exposes products table metadata with foreign key relation fields", () => {
+    const products = schemaRegistry.getTableConfig("products");
 
-    expect(products).not.toBeNull()
-    expect(products?.listColumns.some((column) => column.key === 'price')).toBe(true)
-    expect(products?.fields.some((field) => field.key === 'created_by' && field.autoValue === 'current_user_id')).toBe(true)
+    expect(products).not.toBeNull();
+    expect(products?.listColumns.some((column) => column.key === "price")).toBe(
+      true,
+    );
+    expect(
+      products?.fields.some(
+        (field) =>
+          field.key === "created_by" && field.autoValue === "current_user_id",
+      ),
+    ).toBe(true);
 
-    const relationKeys = schemaRegistry.getRelationFields(products!).map((field) => field.key)
-    expect(relationKeys).toEqual(expect.arrayContaining(['category_id', 'brand_id']))
-  })
+    const relationKeys = schemaRegistry
+      .getRelationFields(products!)
+      .map((field) => field.key);
+    expect(relationKeys).toEqual(
+      expect.arrayContaining(["category_id", "brand_id"]),
+    );
+  });
 
-  it('returns null for an unknown table key', () => {
-    expect(schemaRegistry.getTableConfig('not_a_table')).toBeNull()
-  })
-})
+  it("returns null for an unknown table key", () => {
+    expect(schemaRegistry.getTableConfig("not_a_table")).toBeNull();
+  });
+});

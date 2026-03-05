@@ -1,12 +1,25 @@
-import { Link } from '@tanstack/react-router'
-import { BarChart3, ChevronDownIcon, PackageSearch, Settings, ShieldCheck, ShoppingCart, Users, Warehouse } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Link } from "@tanstack/react-router";
+import {
+  BarChart3,
+  ChevronDownIcon,
+  PackageSearch,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Users,
+  Warehouse,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
-import type { TableGroup } from '@/lib/schema-registry'
+import type { TableGroup } from "@/lib/schema-registry";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -19,8 +32,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
-import * as schemaTables from '@/lib/schema-tables'
+} from "@/components/ui/sidebar";
+import * as schemaTables from "@/lib/schema-tables";
 
 const GROUP_ICONS: Record<TableGroup, LucideIcon> = {
   identity: ShieldCheck,
@@ -28,19 +41,19 @@ const GROUP_ICONS: Record<TableGroup, LucideIcon> = {
   crm: Users,
   inventory: Warehouse,
   commerce: ShoppingCart,
-}
+};
 
 type AppSidebarProps = {
-  pathname: string
-}
+  pathname: string;
+};
 
 export function AppSidebar({ pathname }: AppSidebarProps) {
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState("");
 
   const filteredGroups = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
+    const normalized = query.trim().toLowerCase();
     if (!normalized) {
-      return schemaTables.SCHEMA_TABLE_GROUPS
+      return schemaTables.SCHEMA_TABLE_GROUPS;
     }
 
     return schemaTables.SCHEMA_TABLE_GROUPS.map((group) => ({
@@ -49,10 +62,10 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
         return (
           table.name.toLowerCase().includes(normalized) ||
           table.label.toLowerCase().includes(normalized)
-        )
+        );
       }),
-    })).filter((group) => group.tables.length > 0)
-  }, [query])
+    })).filter((group) => group.tables.length > 0);
+  }, [query]);
 
   return (
     <Sidebar>
@@ -72,24 +85,46 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
         <SidebarGroup>
           <SidebarGroupContent className="space-y-4">
             {filteredGroups.length === 0 ? (
-              <p className="text-muted-foreground px-2 text-xs">No tables found for the current filter.</p>
+              <p className="text-muted-foreground px-2 text-xs">
+                No tables found for the current filter.
+              </p>
             ) : (
               filteredGroups.map((group, index) => (
-                <div key={group.key} className={index > 0 ? 'border-sidebar-border/50 border-t pt-4' : undefined}>
-                  <SidebarSectionDropdown icon={GROUP_ICONS[group.key]} title={group.label}>
+                <div
+                  key={group.key}
+                  className={
+                    index > 0
+                      ? "border-sidebar-border/50 border-t pt-4"
+                      : undefined
+                  }
+                >
+                  <SidebarSectionDropdown
+                    icon={GROUP_ICONS[group.key]}
+                    title={group.label}
+                  >
                     <SidebarMenu>
                       {group.tables.map((table) => {
-                        const tablePath = `/tables/${table.name}`
+                        const tablePath = `/tables/${table.name}`;
 
                         return (
                           <SidebarMenuItem key={table.name}>
-                            <SidebarMenuButton asChild className="h-7" isActive={pathname === tablePath} tooltip={table.label}>
-                              <Link to="/tables/$table" params={{ table: table.name }}>
-                                <span className="font-mono text-[11px]">{table.name}</span>
+                            <SidebarMenuButton
+                              asChild
+                              className="h-7"
+                              isActive={pathname === tablePath}
+                              tooltip={table.label}
+                            >
+                              <Link
+                                to="/tables/$table"
+                                params={{ table: table.name }}
+                              >
+                                <span className="font-mono text-[11px]">
+                                  {table.name}
+                                </span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
-                        )
+                        );
                       })}
                     </SidebarMenu>
                   </SidebarSectionDropdown>
@@ -103,7 +138,11 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
       <SidebarFooter className="border-sidebar-border/70 border-t p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === '/analytics'} tooltip="Analytics">
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === "/analytics"}
+              tooltip="Analytics"
+            >
               <Link to="/analytics">
                 <BarChart3 />
                 <span>Analytics</span>
@@ -111,7 +150,11 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === "/settings"}
+              tooltip="Settings"
+            >
               <Link to="/settings">
                 <Settings />
                 <span>Settings</span>
@@ -121,17 +164,21 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
 type SidebarSectionDropdownProps = {
-  children: ReactNode
-  icon: LucideIcon
-  title: string
-}
+  children: ReactNode;
+  icon: LucideIcon;
+  title: string;
+};
 
-function SidebarSectionDropdown({ children, icon: Icon, title }: SidebarSectionDropdownProps) {
-  const [open, setOpen] = useState(true)
+function SidebarSectionDropdown({
+  children,
+  icon: Icon,
+  title,
+}: SidebarSectionDropdownProps) {
+  const [open, setOpen] = useState(true);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -144,12 +191,12 @@ function SidebarSectionDropdown({ children, icon: Icon, title }: SidebarSectionD
             <Icon className="size-3.5" />
             {title}
           </span>
-          <ChevronDownIcon className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDownIcon
+            className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="pt-1">
-        {children}
-      </CollapsibleContent>
+      <CollapsibleContent className="pt-1">{children}</CollapsibleContent>
     </Collapsible>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-import { CheckoutAnalyticsRepository } from './checkout-analytics-repository'
-import { InventoryAnalyticsRepository } from './inventory-analytics-repository'
-import { OperationsAnalyticsRepository } from './operations-analytics-repository'
-import { PaymentsAnalyticsRepository } from './payments-analytics-repository'
-import { ProductsAnalyticsRepository } from './products-analytics-repository'
-import { SalesAnalyticsRepository } from './sales-analytics-repository'
-import { resolveAnalyticsRange } from '@/lib/analytics/analytics-range'
+import { CheckoutAnalyticsRepository } from "./checkout-analytics-repository";
+import { InventoryAnalyticsRepository } from "./inventory-analytics-repository";
+import { OperationsAnalyticsRepository } from "./operations-analytics-repository";
+import { PaymentsAnalyticsRepository } from "./payments-analytics-repository";
+import { ProductsAnalyticsRepository } from "./products-analytics-repository";
+import { SalesAnalyticsRepository } from "./sales-analytics-repository";
+import { resolveAnalyticsRange } from "@/lib/analytics/analytics-range";
 import type {
   AnalyticsDashboardData,
   AnalyticsDomainResult,
@@ -15,7 +15,7 @@ import type {
   PaymentsAnalyticsData,
   ProductsAnalyticsData,
   SalesAnalyticsData,
-} from '@/types/analytics'
+} from "@/types/analytics";
 
 const EMPTY_SALES_DATA: SalesAnalyticsData = {
   overview: {
@@ -31,7 +31,7 @@ const EMPTY_SALES_DATA: SalesAnalyticsData = {
   },
   timeseries: [],
   statusBreakdown: [],
-}
+};
 
 const EMPTY_PAYMENTS_DATA: PaymentsAnalyticsData = {
   overview: {
@@ -46,12 +46,12 @@ const EMPTY_PAYMENTS_DATA: PaymentsAnalyticsData = {
     payment_success_rate: 0,
   },
   statusBreakdown: [],
-}
+};
 
 const EMPTY_CHECKOUT_DATA: CheckoutAnalyticsData = {
   funnel: [],
   timeseries: [],
-}
+};
 
 const EMPTY_INVENTORY_DATA: InventoryAnalyticsData = {
   overview: {
@@ -64,12 +64,12 @@ const EMPTY_INVENTORY_DATA: InventoryAnalyticsData = {
   },
   movementsTimeseries: [],
   lowStock: [],
-}
+};
 
 const EMPTY_PRODUCTS_DATA: ProductsAnalyticsData = {
   topRevenue: [],
   conversion: [],
-}
+};
 
 const EMPTY_OPERATIONS_DATA: OperationsAnalyticsData = {
   overview: {
@@ -80,30 +80,35 @@ const EMPTY_OPERATIONS_DATA: OperationsAnalyticsData = {
     approved_reviews_count: 0,
     avg_rating: 0,
   },
-}
+};
 
 function toDomainResult<T>(
   result: PromiseSettledResult<T>,
   fallback: T,
 ): AnalyticsDomainResult<T> {
-  if (result.status === 'fulfilled') {
+  if (result.status === "fulfilled") {
     return {
       data: result.value,
       error: null,
-    }
+    };
   }
 
-  const message = result.reason instanceof Error ? result.reason.message : 'Erro ao carregar domínio de analytics'
+  const message =
+    result.reason instanceof Error
+      ? result.reason.message
+      : "Error loading analytics domain";
 
   return {
     data: fallback,
     error: message,
-  }
+  };
 }
 
 export const AnalyticsDashboardRepository = {
-  async loadDashboard(rangeKey: AnalyticsRangeKey): Promise<AnalyticsDashboardData> {
-    const range = resolveAnalyticsRange(rangeKey)
+  async loadDashboard(
+    rangeKey: AnalyticsRangeKey,
+  ): Promise<AnalyticsDashboardData> {
+    const range = resolveAnalyticsRange(rangeKey);
 
     const salesPromise = Promise.all([
       SalesAnalyticsRepository.getOverview(range),
@@ -113,7 +118,7 @@ export const AnalyticsDashboardRepository = {
       overview,
       timeseries,
       statusBreakdown,
-    }))
+    }));
 
     const paymentsPromise = Promise.all([
       PaymentsAnalyticsRepository.getOverview(range),
@@ -121,7 +126,7 @@ export const AnalyticsDashboardRepository = {
     ]).then(([overview, statusBreakdown]) => ({
       overview,
       statusBreakdown,
-    }))
+    }));
 
     const checkoutPromise = Promise.all([
       CheckoutAnalyticsRepository.getFunnel(range),
@@ -129,7 +134,7 @@ export const AnalyticsDashboardRepository = {
     ]).then(([funnel, timeseries]) => ({
       funnel,
       timeseries,
-    }))
+    }));
 
     const inventoryPromise = Promise.all([
       InventoryAnalyticsRepository.getOverview(),
@@ -139,7 +144,7 @@ export const AnalyticsDashboardRepository = {
       overview,
       movementsTimeseries,
       lowStock,
-    }))
+    }));
 
     const productsPromise = Promise.all([
       ProductsAnalyticsRepository.getTopRevenue(range, 10),
@@ -147,9 +152,11 @@ export const AnalyticsDashboardRepository = {
     ]).then(([topRevenue, conversion]) => ({
       topRevenue,
       conversion,
-    }))
+    }));
 
-    const operationsPromise = OperationsAnalyticsRepository.getOverview(range).then((overview) => ({ overview }))
+    const operationsPromise = OperationsAnalyticsRepository.getOverview(
+      range,
+    ).then((overview) => ({ overview }));
 
     const [
       salesResult,
@@ -165,7 +172,7 @@ export const AnalyticsDashboardRepository = {
       inventoryPromise,
       productsPromise,
       operationsPromise,
-    ])
+    ]);
 
     return {
       range,
@@ -175,6 +182,6 @@ export const AnalyticsDashboardRepository = {
       inventory: toDomainResult(inventoryResult, EMPTY_INVENTORY_DATA),
       products: toDomainResult(productsResult, EMPTY_PRODUCTS_DATA),
       operations: toDomainResult(operationsResult, EMPTY_OPERATIONS_DATA),
-    }
+    };
   },
-}
+};

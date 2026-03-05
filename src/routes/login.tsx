@@ -1,42 +1,46 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import type { FormEvent } from 'react'
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { getSession, signInWithPassword } from '@/lib/supabase/auth'
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getSession, signInWithPassword } from "@/lib/supabase/auth";
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
-    const session = await getSession()
+    const session = await getSession();
     if (session) {
-      throw redirect({ to: '/tables/$table', params: { table: 'products' } })
+      throw redirect({ to: "/tables/$table", params: { table: "products" } });
     }
   },
   component: LoginPage,
-})
+});
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setLoading(true)
-    setError(null)
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      await signInWithPassword(email, password)
-      await navigate({ to: '/tables/$table', params: { table: 'products' } })
+      await signInWithPassword(email, password);
+      await navigate({ to: "/tables/$table", params: { table: "products" } });
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to sign in')
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to sign in",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -72,14 +76,14 @@ function LoginPage() {
               />
             </div>
 
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="text-destructive text-sm">{error}</p> : null}
 
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </CardContent>
       </Card>
     </section>
-  )
+  );
 }

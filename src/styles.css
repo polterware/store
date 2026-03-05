@@ -1,7 +1,7 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
-@import '@fontsource-variable/inter';
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -95,8 +95,10 @@
 }
 
 @theme inline {
-  --font-sans: 'Inter Variable', sans-serif;
-  --font-brand: Baskerville, 'Baskerville Old Face', 'Hoefler Text', 'Times New Roman', serif;
+  --font-sans: "Inter Variable", sans-serif;
+  --font-brand:
+    Baskerville, "Baskerville Old Face", "Hoefler Text", "Times New Roman",
+    serif;
 
   --color-app-shell: var(--app-shell);
   --color-app-panel: var(--app-panel);
@@ -156,9 +158,8 @@
 
   html,
   body {
-    @apply font-sans bg-background text-foreground overflow-hidden h-full;
+    @apply bg-background text-foreground h-full overflow-hidden font-sans;
   }
-
 }
 
 /* Custom scrollbar styles */
