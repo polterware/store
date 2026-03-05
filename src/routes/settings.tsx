@@ -155,6 +155,11 @@ function SettingsPage() {
                 value={settingValue}
                 onChange={(event) => setSettingValue(event.target.value)}
               />
+              <p className="text-muted-foreground text-xs">
+                Use valid JSON. For lists, separate items with commas inside
+                brackets. Example: ["https://cdn.example.com/image-a.jpg",
+                "https://cdn.example.com/image-b.jpg"]
+              </p>
             </div>
 
             <div className="flex gap-2">

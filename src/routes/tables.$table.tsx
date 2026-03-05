@@ -76,6 +76,11 @@ export const Route = createFileRoute("/tables/$table")({
         params: { table: redirectedTable },
       });
     }
+
+    return { user };
+  },
+  loader: ({ context }) => {
+    return { user: context.user };
   },
   component: TablesBySchemaPage,
 });
@@ -156,6 +161,45 @@ const CUSTOMER_GROUPS_LOOKUP_KEY = "__customer_group_ids";
 const ORDER_ITEM_PRODUCTS_LOOKUP_KEY = "__order_item_product_ids";
 const SHIPMENT_ORDER_ITEMS_LOOKUP_KEY = "__shipment_order_item_ids";
 const PRODUCT_TAGS_LOOKUP_KEY = "__product_tag_ids";
+
+function getFieldTextareaPlaceholder(
+  config: TableConfig,
+  field: FieldConfig,
+): string | undefined {
+  if (field.type === "array") {
+    if (config.table === "products" && field.key === "images") {
+      return "https://cdn.example.com/products/item-front.jpg, https://cdn.example.com/products/item-side.jpg";
+    }
+
+    return "item_one, item_two, item_three";
+  }
+
+  if (field.type === "metadata") {
+    return '{"source":"catalog","tags":["featured","seasonal"]}';
+  }
+
+  if (field.type === "json") {
+    return '{"items":["value_one","value_two"],"enabled":true}';
+  }
+
+  return undefined;
+}
+
+function getFieldInputHint(config: TableConfig, field: FieldConfig): string | null {
+  if (field.type === "array") {
+    if (config.table === "products" && field.key === "images") {
+      return 'Add image URIs separated by commas. Example: https://cdn.example.com/products/item-front.jpg, https://cdn.example.com/products/item-side.jpg';
+    }
+
+    return "Add list values separated by commas. Example: value_one, value_two, value_three";
+  }
+
+  if (field.type === "metadata" || field.type === "json") {
+    return 'Use valid JSON. For lists, use comma-separated items inside brackets. Example: ["value_one", "value_two"]';
+  }
+
+  return null;
+}
 
 function toDateInputValue(value: unknown): string {
   if (!value) {
@@ -243,10 +287,10 @@ function toFormValue(
   }
 
   if (field.type === "json" || field.type === "metadata") {
-    if (typeof rowValue === "object" && rowValue !== null) {
+    if (typeof rowValue === "object") {
       return JSON.stringify(rowValue);
     }
-    return String(rowValue ?? "{}");
+    return String(rowValue);
   }
 
   if (field.type === "array") {
@@ -331,6 +375,23 @@ function parseFieldValue(field: FieldConfig, rawValue: unknown): unknown {
   }
 
   if (field.type === "array") {
+    if (normalized.startsWith("[") && normalized.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(normalized);
+        if (!Array.isArray(parsed)) {
+          throw new Error();
+        }
+
+        return parsed
+          .map((item) => String(item).trim())
+          .filter((item) => item.length > 0);
+      } catch {
+        throw new Error(
+          `Field ${field.label} must be a comma-separated list or a JSON array.`,
+        );
+      }
+    }
+
     return normalized
       .split(",")
       .map((item) => item.trim())
@@ -532,9 +593,11 @@ function buildDataTableFilters(
 
 function TablesBySchemaPage() {
   const params = Route.useParams();
+  const { user } = Route.useLoaderData();
+  const userId = user.id;
+
   const config = useMemo(() => getTableConfig(params.table), [params.table]);
 
-  const [userId, setUserId] = useState<string | null>(null);
   const [rows, setRows] = useState<Array<TableRecord>>([]);
   const [lookupsByField, setLookupsByField] = useState<LookupsByField>({});
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -687,9 +750,6 @@ function TablesBySchemaPage() {
     setError(null);
 
     try {
-      const currentUser = await getUser();
-      setUserId(currentUser?.id ?? null);
-
       const relationFields = getRelationFields(config);
       const additionalLookupRequests = getAdditionalLookupRequests(config);
 
@@ -891,12 +951,14 @@ function TablesBySchemaPage() {
     setIsSubmitting(true);
 
     try {
-      const fields =
-        dialogMode === "create"
-          ? getCreatableFields(config)
-          : getUpdatableFields(config);
-      const payload = fields.reduce<Record<string, unknown>>((acc, field) => {
+      const payload = config.fields.reduce<Record<string, unknown>>((acc, field) => {
         let rawValue = formValues[field.key];
+
+        const isAutoValue = Boolean(field.autoValue);
+        const isEditable =
+          dialogMode === "create"
+            ? field.editableOnCreate !== false
+            : field.editableOnUpdate !== false;
 
         if (field.autoValue === "current_user_id") {
           rawValue = userId;
@@ -908,7 +970,7 @@ function TablesBySchemaPage() {
 
         if (
           dialogMode === "create" &&
-          rawValue === "" &&
+          (rawValue === "" || rawValue === undefined) &&
           field.defaultValue !== undefined
         ) {
           rawValue =
@@ -917,7 +979,11 @@ function TablesBySchemaPage() {
               : field.defaultValue;
         }
 
-        acc[field.key] = parseFieldValue(field, rawValue);
+        // Only include if it's an auto-value OR if it's editable
+        // This prevents sending fields like 'id' or timestamps when they shouldn't be
+        if (isAutoValue || isEditable) {
+          acc[field.key] = parseFieldValue(field, rawValue);
+        }
 
         return acc;
       }, {});
@@ -1450,6 +1516,11 @@ function TablesBySchemaPage() {
                 field.type === "integer" ||
                 field.type === "number" ||
                 field.type === "currency";
+              const textareaPlaceholder = getFieldTextareaPlaceholder(
+                config,
+                field,
+              );
+              const inputHint = getFieldInputHint(config, field);
 
               const value = formValues[field.key];
 
@@ -1538,6 +1609,7 @@ function TablesBySchemaPage() {
                   {isTextArea ? (
                     <Textarea
                       id={`field-${field.key}`}
+                      placeholder={textareaPlaceholder}
                       value={String(value ?? "")}
                       onChange={(event) => {
                         setFormValues((current) => ({
@@ -1546,6 +1618,10 @@ function TablesBySchemaPage() {
                         }));
                       }}
                     />
+                  ) : null}
+
+                  {inputHint ? (
+                    <p className="text-muted-foreground text-xs">{inputHint}</p>
                   ) : null}
 
                   {isDate ? (
