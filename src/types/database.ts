@@ -85,38 +85,6 @@ export interface Database {
           lifecycle_status?: 'active' | 'inactive' | 'archived'
         }
       }
-      modules: {
-        Row: {
-          id: string
-          code: string
-          name: string
-          description: string | null
-          enabled: boolean
-          created_at: string
-          updated_at: string
-          deleted_at: string | null
-          lifecycle_status: 'active' | 'inactive' | 'archived'
-        }
-        Insert: {
-          id?: string
-          code: string
-          name: string
-          description?: string | null
-          enabled?: boolean
-          created_at?: string
-          updated_at?: string
-          deleted_at?: string | null
-          lifecycle_status?: 'active' | 'inactive' | 'archived'
-        }
-        Update: {
-          name?: string
-          description?: string | null
-          enabled?: boolean
-          updated_at?: string
-          deleted_at?: string | null
-          lifecycle_status?: 'active' | 'inactive' | 'archived'
-        }
-      }
       products: {
         Row: {
           id: string

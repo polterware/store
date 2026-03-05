@@ -10,10 +10,10 @@ const RANGE_DAYS: Record<Exclude<AnalyticsRangeKey, 'all'>, number> = {
 }
 
 const RANGE_LABELS: Record<AnalyticsRangeKey, string> = {
-  '7d': 'Últimos 7 dias',
-  '30d': 'Últimos 30 dias',
-  '90d': 'Últimos 90 dias',
-  all: 'Vida toda',
+  '7d': 'Last 7 days',
+  '30d': 'Last 30 days',
+  '90d': 'Last 90 days',
+  all: 'All time',
 }
 
 export const ANALYTICS_RANGE_OPTIONS: Array<AnalyticsRangeOption> = [

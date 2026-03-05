@@ -91,7 +91,7 @@ function RootLayout() {
         return `${tableConfig.label} (${tableConfig.table})`
       }
 
-      return 'Tabela'
+      return 'Table'
     }
 
     return 'Urú'

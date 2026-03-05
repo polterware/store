@@ -12,7 +12,6 @@ Open-source project to help people manage their businesses using a desktop app (
 - Architecture designed for real operations: single desktop app + Supabase backend
 - Secure-by-default model: JWT, strict RLS, and RPC for critical transactional flows
 - No local SQLite for business data and no domain CRUD in the Tauri backend
-- Current scope is aligned with the Dost context, with a schema designed to be generalizable
 
 ## Prerequisites
 
@@ -25,7 +24,7 @@ Open-source project to help people manage their businesses using a desktop app (
 
 ## Recommended Knowledge
 
-It is strongly recommended to have solid software engineering knowledge before changing this app's architecture, schema, RLS policies, or transactional RPC flows.
+It is extremely recommended to have solid software engineering knowledge to use this app in real scenarios. This is not only for contributors: day-to-day operation also requires handling environment variables, Supabase project setup, migrations, and access-control concepts (roles/RLS).
 
 ## Quick Start
 

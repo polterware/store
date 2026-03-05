@@ -35,7 +35,7 @@ Primary focus is Dost operations while keeping a schema that can be generalized:
 - Payments: transactions, payments, refunds
 - Fulfillment: shipments, shipment_items, shipment_events
 - Inventory: inventory_levels, inventory_movements, locations
-- Governance: profiles, roles, user_roles, modules
+- Governance: profiles, roles, user_roles
 
 ## Removed architecture
 

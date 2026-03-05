@@ -101,18 +101,6 @@ begin
 end;
 $$;
 
-create table if not exists public.modules (
-  id uuid primary key default gen_random_uuid(),
-  code text not null unique,
-  name text not null,
-  description text,
-  enabled boolean not null default true,
-  created_at timestamptz not null default timezone('utc', now()),
-  updated_at timestamptz not null default timezone('utc', now()),
-  deleted_at timestamptz,
-  lifecycle_status text not null default 'active' check (lifecycle_status in ('active', 'inactive', 'archived'))
-);
-
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -477,7 +465,6 @@ create index if not exists idx_shipment_events_shipment_created on public.shipme
 create trigger trg_profiles_updated_at before update on public.profiles for each row execute function app_private.set_updated_at();
 create trigger trg_roles_updated_at before update on public.roles for each row execute function app_private.set_updated_at();
 create trigger trg_user_roles_updated_at before update on public.user_roles for each row execute function app_private.set_updated_at();
-create trigger trg_modules_updated_at before update on public.modules for each row execute function app_private.set_updated_at();
 create trigger trg_categories_updated_at before update on public.categories for each row execute function app_private.set_updated_at();
 create trigger trg_brands_updated_at before update on public.brands for each row execute function app_private.set_updated_at();
 create trigger trg_products_updated_at before update on public.products for each row execute function app_private.set_updated_at();
@@ -511,21 +498,6 @@ values
   ('analyst', 'Analyst')
 on conflict (code) do update set
   name = excluded.name,
-  updated_at = timezone('utc', now()),
-  lifecycle_status = 'active',
-  deleted_at = null;
-
-insert into public.modules (code, name, description, enabled)
-values
-  ('catalog', 'Catalog', 'Products, categories and brands', true),
-  ('orders', 'Orders', 'Order and checkout lifecycle', true),
-  ('inventory', 'Inventory', 'Stock movements and availability', true),
-  ('payments', 'Payments', 'Payments and refunds', true),
-  ('analytics', 'Analytics', 'Metrics and dashboards', true)
-on conflict (code) do update set
-  name = excluded.name,
-  description = excluded.description,
-  enabled = excluded.enabled,
   updated_at = timezone('utc', now()),
   lifecycle_status = 'active',
   deleted_at = null;
@@ -980,7 +952,6 @@ grant execute on function public.update_order_status(uuid, text, text, text) to 
 alter table public.profiles enable row level security;
 alter table public.roles enable row level security;
 alter table public.user_roles enable row level security;
-alter table public.modules enable row level security;
 alter table public.products enable row level security;
 alter table public.categories enable row level security;
 alter table public.brands enable row level security;
@@ -1030,9 +1001,6 @@ for all using (app_private.has_role(array['admin']))
 with check (app_private.has_role(array['admin']));
 
 -- Generic business tables
-create policy modules_select on public.modules for select using (app_private.has_role(array['admin', 'operator', 'analyst']));
-create policy modules_write on public.modules for all using (app_private.has_role(array['admin'])) with check (app_private.has_role(array['admin']));
-
 create policy categories_select on public.categories for select using (app_private.has_role(array['admin', 'operator', 'analyst']));
 create policy categories_write on public.categories for all using (app_private.has_role(array['admin', 'operator'])) with check (app_private.has_role(array['admin', 'operator']));
 

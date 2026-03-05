@@ -348,29 +348,6 @@ export const SCHEMA_REGISTRY: Array<TableConfig> = [
     ),
   },
   {
-    table: 'modules',
-    label: 'Modules',
-    description: 'Módulos e flags de funcionalidades.',
-    group: 'identity',
-    primaryKey: 'id',
-    deleteStrategy: 'soft',
-    sort: { column: 'code', ascending: true },
-    listColumns: [
-      { key: 'code', label: 'Code', type: 'text' },
-      { key: 'name', label: 'Nome', type: 'text' },
-      { key: 'enabled', label: 'Habilitado', type: 'boolean' },
-      { key: 'lifecycle_status', label: 'Status', type: 'enum' },
-    ],
-    fields: withStandardTableMeta(
-      withLifecycleAndTimestamps([
-        { key: 'code', label: 'Code', type: 'text', required: true },
-        { key: 'name', label: 'Nome', type: 'text', required: true },
-        { key: 'description', label: 'Descrição', type: 'textarea', nullable: true },
-        { key: 'enabled', label: 'Habilitado', type: 'boolean', defaultValue: true },
-      ]),
-    ),
-  },
-  {
     table: 'categories',
     label: 'Categories',
     description: 'Categorias do catálogo.',

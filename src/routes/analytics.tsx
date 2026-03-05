@@ -21,26 +21,26 @@ import { formatCurrency, formatDate } from '@/lib/formatters'
 import { getUser } from '@/lib/supabase/auth'
 
 const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendente',
-  confirmed: 'Confirmado',
-  fulfilled: 'Atendido',
-  cancelled: 'Cancelado',
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  fulfilled: 'Fulfilled',
+  cancelled: 'Cancelled',
 }
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendente',
-  authorized: 'Autorizado',
-  captured: 'Capturado',
-  failed: 'Falhou',
-  cancelled: 'Cancelado',
-  refunded: 'Reembolsado',
+  pending: 'Pending',
+  authorized: 'Authorized',
+  captured: 'Captured',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+  refunded: 'Refunded',
 }
 
 const CHECKOUT_STAGE_LABELS: Record<string, string> = {
-  opened: 'Abertos',
-  completed: 'Concluídos',
-  expired: 'Expirados',
-  abandoned: 'Abandonados',
+  opened: 'Opened',
+  completed: 'Completed',
+  expired: 'Expired',
+  abandoned: 'Abandoned',
 }
 
 const compactCurrencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -58,69 +58,69 @@ const percentFormatter = new Intl.NumberFormat('pt-BR', {
 
 const salesTrendChartConfig = {
   gross_sales: {
-    label: 'Venda bruta',
+    label: 'Gross sales',
     color: 'var(--chart-1)',
   },
   net_sales: {
-    label: 'Venda líquida',
+    label: 'Net sales',
     color: 'var(--chart-2)',
   },
 } as const
 
 const salesStatusChartConfig = {
   orders_count: {
-    label: 'Pedidos',
+    label: 'Orders',
     color: 'var(--chart-1)',
   },
 } as const
 
 const paymentsStatusChartConfig = {
   total_amount: {
-    label: 'Montante',
+    label: 'Amount',
     color: 'var(--chart-3)',
   },
 } as const
 
 const checkoutFunnelChartConfig = {
   sessions_count: {
-    label: 'Sessões',
+    label: 'Sessions',
     color: 'var(--chart-2)',
   },
 } as const
 
 const checkoutCompletionChartConfig = {
   completion_rate: {
-    label: 'Taxa de conclusão',
+    label: 'Completion rate',
     color: 'var(--chart-4)',
   },
   completed_amount: {
-    label: 'Receita concluída',
+    label: 'Completed revenue',
     color: 'var(--chart-1)',
   },
 } as const
 
 const inventoryMovementChartConfig = {
   inbound_qty: {
-    label: 'Entrada',
+    label: 'Inbound',
     color: 'var(--chart-2)',
   },
   outbound_qty: {
-    label: 'Saída',
+    label: 'Outbound',
     color: 'var(--chart-1)',
   },
   reservation_qty: {
-    label: 'Reserva',
+    label: 'Reservation',
     color: 'var(--chart-4)',
   },
   release_qty: {
-    label: 'Liberação',
+    label: 'Release',
     color: 'var(--chart-3)',
   },
 } as const
 
 const productRevenueChartConfig = {
   revenue: {
-    label: 'Receita',
+    label: 'Revenue',
     color: 'var(--chart-2)',
   },
 } as const
@@ -138,7 +138,7 @@ const productConversionChartConfig = {
 
 const operationsChartConfig = {
   count: {
-    label: 'Chamados',
+    label: 'Inquiries',
     color: 'var(--chart-1)',
   },
 } as const
@@ -174,7 +174,7 @@ function ErrorBanner({ message }: { message: string | null }) {
     return null
   }
 
-  return <p className="text-sm text-destructive">Dados parciais neste domínio: {message}</p>
+  return <p className="text-sm text-destructive">Partial data for this domain: {message}</p>
 }
 
 function EmptyChart({ message }: { message: string }) {
@@ -195,7 +195,7 @@ function AnalyticsPage() {
       const data = await AnalyticsDashboardRepository.loadDashboard(targetRange)
       setDashboard(data)
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar o dashboard de analytics.')
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load the analytics dashboard.')
     } finally {
       setIsLoading(false)
     }
@@ -273,9 +273,9 @@ function AnalyticsPage() {
     }
 
     return [
-      { label: 'Aberto', count: overview.open_inquiries_count },
-      { label: 'Pendente', count: overview.pending_inquiries_count },
-      { label: 'Resolvido', count: overview.resolved_inquiries_count },
+      { label: 'Open', count: overview.open_inquiries_count },
+      { label: 'Pending', count: overview.pending_inquiries_count },
+      { label: 'Resolved', count: overview.resolved_inquiries_count },
     ]
   }, [dashboard])
 
@@ -285,14 +285,14 @@ function AnalyticsPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Analytics</h1>
           <p className="text-muted-foreground text-sm">
-            Monitoramento executivo de vendas, pagamentos, checkout, estoque, produtos e operação.
+            Executive monitoring for sales, payments, checkout, inventory, products, and operations.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Select value={rangeKey} onValueChange={(value) => setRangeKey(value as AnalyticsRangeKey)}>
             <SelectTrigger className="w-[190px]">
-              <SelectValue placeholder="Período" />
+              <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
               {ANALYTICS_RANGE_OPTIONS.map((option) => (
@@ -304,7 +304,7 @@ function AnalyticsPage() {
           </Select>
 
           <Button type="button" variant="outline" disabled={isLoading} onClick={() => void loadDashboard(rangeKey)}>
-            {isLoading ? 'Atualizando...' : 'Atualizar'}
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
       </header>
@@ -314,73 +314,73 @@ function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Venda líquida</CardDescription>
+            <CardDescription>Net sales</CardDescription>
             <CardTitle>{formatCurrency(salesOverview?.net_sales ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Bruta: {formatCurrency(salesOverview?.gross_sales ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Gross: {formatCurrency(salesOverview?.gross_sales ?? 0)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Pedidos</CardDescription>
+            <CardDescription>Orders</CardDescription>
             <CardTitle>{formatInteger(salesOverview?.orders_count ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Cancelamento: {formatPercent(salesOverview?.cancellation_rate ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Cancellation: {formatPercent(salesOverview?.cancellation_rate ?? 0)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Ticket médio</CardDescription>
+            <CardDescription>Average ticket</CardDescription>
             <CardTitle>{formatCurrency(salesOverview?.avg_ticket ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Pedidos pagos: {formatInteger(salesOverview?.paid_orders_count ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Paid orders: {formatInteger(salesOverview?.paid_orders_count ?? 0)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Sucesso de pagamento</CardDescription>
+            <CardDescription>Payment success</CardDescription>
             <CardTitle>{formatPercent(paymentsOverview?.payment_success_rate ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Capturado: {formatCurrency(paymentsOverview?.captured_amount ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Captured: {formatCurrency(paymentsOverview?.captured_amount ?? 0)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>SKUs com baixo estoque</CardDescription>
+            <CardDescription>Low-stock SKUs</CardDescription>
             <CardTitle>{formatInteger(inventoryOverview?.low_stock_skus ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Ruptura: {formatInteger(inventoryOverview?.out_of_stock_skus ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Out of stock: {formatInteger(inventoryOverview?.out_of_stock_skus ?? 0)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Atendimentos em aberto</CardDescription>
+            <CardDescription>Open inquiries</CardDescription>
             <CardTitle>{formatInteger(operationsOverview?.open_inquiries_count ?? 0)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-xs">Reviews pendentes: {formatInteger(operationsOverview?.pending_reviews_count ?? 0)}</p>
+            <p className="text-muted-foreground text-xs">Pending reviews: {formatInteger(operationsOverview?.pending_reviews_count ?? 0)}</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="sales" className="space-y-4">
         <TabsList className="w-full justify-start overflow-auto">
-          <TabsTrigger value="sales">Vendas</TabsTrigger>
-          <TabsTrigger value="payments">Pagamentos</TabsTrigger>
+          <TabsTrigger value="sales">Sales</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="checkout">Checkout</TabsTrigger>
-          <TabsTrigger value="inventory">Estoque</TabsTrigger>
-          <TabsTrigger value="products">Produtos</TabsTrigger>
-          <TabsTrigger value="operations">Operação</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-4">
@@ -388,12 +388,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Receita ao longo do tempo</CardTitle>
-              <CardDescription>Venda bruta vs líquida por período.</CardDescription>
+              <CardTitle>Revenue over time</CardTitle>
+              <CardDescription>Gross vs net sales by period.</CardDescription>
             </CardHeader>
             <CardContent>
               {salesTrendData.length === 0 ? (
-                <EmptyChart message="Sem dados de vendas no período selecionado." />
+                <EmptyChart message="No sales data for the selected period." />
               ) : (
                 <ChartContainer config={salesTrendChartConfig} className="h-[280px] w-full">
                   <AreaChart data={salesTrendData}>
@@ -412,12 +412,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Pedidos por status</CardTitle>
-              <CardDescription>Distribuição operacional dos pedidos.</CardDescription>
+              <CardTitle>Orders by status</CardTitle>
+              <CardDescription>Operational distribution of orders.</CardDescription>
             </CardHeader>
             <CardContent>
               {salesStatusData.length === 0 ? (
-                <EmptyChart message="Sem pedidos no período selecionado." />
+                <EmptyChart message="No orders in the selected period." />
               ) : (
                 <ChartContainer config={salesStatusChartConfig} className="h-[260px] w-full">
                   <BarChart data={salesStatusData}>
@@ -440,19 +440,19 @@ function AnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Capturado</CardDescription>
+                <CardDescription>Captured</CardDescription>
                 <CardTitle>{formatCurrency(paymentsOverview?.captured_amount ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Falhas</CardDescription>
+                <CardDescription>Failures</CardDescription>
                 <CardTitle>{formatCurrency(paymentsOverview?.failed_amount ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Reembolsos</CardDescription>
+                <CardDescription>Refunds</CardDescription>
                 <CardTitle>{formatCurrency(paymentsOverview?.refunded_amount ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
@@ -460,12 +460,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Status de pagamentos</CardTitle>
-              <CardDescription>Montante financeiro por status.</CardDescription>
+              <CardTitle>Payment status</CardTitle>
+              <CardDescription>Financial amount by status.</CardDescription>
             </CardHeader>
             <CardContent>
               {paymentsStatusData.length === 0 ? (
-                <EmptyChart message="Sem pagamentos no período selecionado." />
+                <EmptyChart message="No payments in the selected period." />
               ) : (
                 <ChartContainer config={paymentsStatusChartConfig} className="h-[280px] w-full">
                   <BarChart data={paymentsStatusData}>
@@ -487,12 +487,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Funil de checkout</CardTitle>
-              <CardDescription>Sessões por estágio do fluxo.</CardDescription>
+              <CardTitle>Checkout funnel</CardTitle>
+              <CardDescription>Sessions by funnel stage.</CardDescription>
             </CardHeader>
             <CardContent>
               {checkoutFunnelData.length === 0 ? (
-                <EmptyChart message="Sem sessões de checkout no período selecionado." />
+                <EmptyChart message="No checkout sessions in the selected period." />
               ) : (
                 <ChartContainer config={checkoutFunnelChartConfig} className="h-[260px] w-full">
                   <BarChart data={checkoutFunnelData}>
@@ -510,12 +510,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Taxa de conclusão ao longo do tempo</CardTitle>
-              <CardDescription>Conversão de checkout e montante concluído.</CardDescription>
+              <CardTitle>Completion rate over time</CardTitle>
+              <CardDescription>Checkout conversion and completed amount.</CardDescription>
             </CardHeader>
             <CardContent>
               {checkoutTimeseriesData.length === 0 ? (
-                <EmptyChart message="Sem série temporal de checkout no período selecionado." />
+                <EmptyChart message="No checkout timeseries in the selected period." />
               ) : (
                 <ChartContainer config={checkoutCompletionChartConfig} className="h-[280px] w-full">
                   <LineChart data={checkoutTimeseriesData}>
@@ -540,19 +540,19 @@ function AnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>SKUs totais</CardDescription>
+                <CardDescription>Total SKUs</CardDescription>
                 <CardTitle>{formatInteger(inventoryOverview?.total_skus ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Unidades disponíveis</CardDescription>
+                <CardDescription>Available units</CardDescription>
                 <CardTitle>{formatInteger(inventoryOverview?.total_available_units ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Unidades reservadas</CardDescription>
+                <CardDescription>Reserved units</CardDescription>
                 <CardTitle>{formatInteger(inventoryOverview?.total_reserved_units ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
@@ -560,12 +560,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Movimentações de estoque</CardTitle>
-              <CardDescription>Entrada, saída, reserva e liberação por período.</CardDescription>
+              <CardTitle>Inventory movements</CardTitle>
+              <CardDescription>Inbound, outbound, reservation, and release by period.</CardDescription>
             </CardHeader>
             <CardContent>
               {inventoryMovementData.length === 0 ? (
-                <EmptyChart message="Sem movimentações no período selecionado." />
+                <EmptyChart message="No movements in the selected period." />
               ) : (
                 <ChartContainer config={inventoryMovementChartConfig} className="h-[280px] w-full">
                   <LineChart data={inventoryMovementData}>
@@ -586,25 +586,25 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Itens críticos de estoque</CardTitle>
-              <CardDescription>Produtos abaixo do ponto de reposição.</CardDescription>
+              <CardTitle>Critical stock items</CardTitle>
+              <CardDescription>Products below reorder point.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>SKU</TableHead>
-                    <TableHead>Produto</TableHead>
-                    <TableHead>Disponível</TableHead>
-                    <TableHead>Ponto de reposição</TableHead>
-                    <TableHead>Local</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Available</TableHead>
+                    <TableHead>Reorder point</TableHead>
+                    <TableHead>Location</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(dashboard?.inventory.data.lowStock ?? []).length === 0 ? (
                     <TableRow>
                       <TableCell className="text-muted-foreground" colSpan={5}>
-                        Nenhum item crítico no período atual.
+                        No critical stock items right now.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -629,12 +629,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Top produtos por receita</CardTitle>
-              <CardDescription>Ranking de faturamento por SKU.</CardDescription>
+              <CardTitle>Top products by revenue</CardTitle>
+              <CardDescription>Revenue ranking by SKU.</CardDescription>
             </CardHeader>
             <CardContent>
               {topRevenueData.length === 0 ? (
-                <EmptyChart message="Sem dados de receita por produto no período selecionado." />
+                <EmptyChart message="No product revenue data in the selected period." />
               ) : (
                 <ChartContainer config={productRevenueChartConfig} className="h-[300px] w-full">
                   <BarChart data={topRevenueData} layout="vertical" margin={{ left: 8, right: 8 }}>
@@ -652,12 +652,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Conversão por produto</CardTitle>
-              <CardDescription>Taxa de view para carrinho e carrinho para venda.</CardDescription>
+              <CardTitle>Product conversion</CardTitle>
+              <CardDescription>View-to-cart and cart-to-sale rates.</CardDescription>
             </CardHeader>
             <CardContent>
               {productsConversionData.length === 0 ? (
-                <EmptyChart message="Sem métricas de conversão de produto no período selecionado." />
+                <EmptyChart message="No product conversion metrics in the selected period." />
               ) : (
                 <ChartContainer config={productConversionChartConfig} className="h-[300px] w-full">
                   <BarChart data={productsConversionData}>
@@ -681,19 +681,19 @@ function AnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Chamados pendentes</CardDescription>
+                <CardDescription>Pending inquiries</CardDescription>
                 <CardTitle>{formatInteger(operationsOverview?.pending_inquiries_count ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Chamados resolvidos</CardDescription>
+                <CardDescription>Resolved inquiries</CardDescription>
                 <CardTitle>{formatInteger(operationsOverview?.resolved_inquiries_count ?? 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Avaliação média</CardDescription>
+                <CardDescription>Average rating</CardDescription>
                 <CardTitle>{(operationsOverview?.avg_rating ?? 0).toFixed(2)}</CardTitle>
               </CardHeader>
             </Card>
@@ -701,12 +701,12 @@ function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Distribuição de chamados</CardTitle>
-              <CardDescription>Visão operacional de atendimento.</CardDescription>
+              <CardTitle>Inquiry distribution</CardTitle>
+              <CardDescription>Operational support view.</CardDescription>
             </CardHeader>
             <CardContent>
               {operationsData.length === 0 ? (
-                <EmptyChart message="Sem dados de atendimento no período selecionado." />
+                <EmptyChart message="No support data in the selected period." />
               ) : (
                 <ChartContainer config={operationsChartConfig} className="h-[260px] w-full">
                   <BarChart data={operationsData}>

@@ -2,12 +2,12 @@ import { Link } from '@tanstack/react-router'
 import { ChevronDownIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SchemaTableName } from '@/lib/schema-registry'
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -16,31 +16,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from '@/components/ui/sidebar'
 import * as schemaTables from '@/lib/schema-tables'
 
 type AppSidebarProps = {
   pathname: string
 }
-
-type AppNavItem =
-  | {
-      label: string
-      table: SchemaTableName
-    }
-  | {
-      label: string
-      route: '/analytics' | '/settings'
-    }
-
-const APP_NAV_ITEMS: Array<AppNavItem> = [
-  { label: 'Products', table: 'products' },
-  { label: 'Orders', table: 'orders' },
-  { label: 'Inventory', table: 'inventory_levels' },
-  { label: 'Analytics', route: '/analytics' },
-  { label: 'Settings', route: '/settings' },
-]
 
 export function AppSidebar({ pathname }: AppSidebarProps) {
   const [query, setQuery] = useState('')
@@ -78,44 +59,6 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarSectionDropdown title="Modules">
-              <SidebarMenu>
-                {APP_NAV_ITEMS.map((item) => {
-                  if ('table' in item) {
-                    const isActive = pathname === `/tables/${item.table}`
-
-                    return (
-                      <SidebarMenuItem key={item.table}>
-                        <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                          <Link to="/tables/$table" params={{ table: item.table }}>
-                            <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )
-                  }
-
-                  const isActive = pathname === item.route
-
-                  return (
-                    <SidebarMenuItem key={item.route}>
-                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                        <Link to={item.route}>
-                          <span>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarSectionDropdown>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
           <SidebarGroupLabel>Tables</SidebarGroupLabel>
           <SidebarGroupContent className="space-y-4">
             {filteredGroups.length === 0 ? (
@@ -144,6 +87,25 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-sidebar-border/70 border-t p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === '/analytics'} tooltip="Analytics">
+              <Link to="/analytics">
+                <span>Analytics</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+              <Link to="/settings">
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }
