@@ -99,7 +99,7 @@ function RootLayout() {
 
   if (isLoginPage) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="h-screen overflow-hidden bg-background text-foreground">
         <div
           data-tauri-drag-region
           className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
@@ -113,7 +113,7 @@ function RootLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="h-screen overflow-hidden bg-background text-foreground">
       <div
         data-tauri-drag-region
         className="h-6 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
@@ -166,11 +166,11 @@ function RootLayout() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark h-full">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="h-full">
         {children}
         <Scripts />
       </body>

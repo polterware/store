@@ -4,66 +4,66 @@
 
 # URU
 
-Gerencie seu negocio sem depender de SaaS caro. O URU e um app desktop open-source que centraliza catalogo de produtos, estoque, pedidos, vendas, pagamentos e relatorios em uma unica interface conectada ao [Supabase](https://supabase.com).
+Manage your business without relying on expensive SaaS. URU is an open-source desktop app that brings together product catalog, inventory, orders, sales, payments, and reports in a single interface powered by [Supabase](https://supabase.com).
 
-## O que o URU faz
+## What URU Does
 
-- **Catalogo de produtos** — cadastre, edite e organize seus itens com campos flexiveis
-- **Gestao de estoque** — acompanhe quantidades, movimentacoes e alertas de estoque baixo
-- **Pedidos e vendas** — registre vendas, acompanhe status e historico de transacoes
-- **Analytics** — dashboards visuais com metricas do negocio (receita, produtos mais vendidos, tendencias)
-- **Controle de acesso** — tres perfis (admin, operador, analista) com permissoes diferentes
-- **App desktop nativo** — roda como aplicacao nativa no Windows, macOS e Linux via Tauri
+- **Product catalog** — create, edit, and organize items with flexible fields
+- **Inventory management** — track quantities, movements, and low-stock alerts
+- **Orders and sales** — record sales, track status, and view transaction history
+- **Analytics** — visual dashboards with business metrics (revenue, top products, trends)
+- **Access control** — three roles (admin, operator, analyst) with different permissions
+- **Native desktop app** — runs as a native application on Windows, macOS, and Linux via Tauri
 
-### Para quem e tecnico
+### For the Technically Curious
 
-- Toda logica de negocio roda no Supabase (sem banco local)
-- Dados protegidos por regras de acesso no banco (Row Level Security)
-- Operacoes criticas (reserva de estoque, finalizacao de venda, estornos) usam funcoes transacionais no servidor
-- Autenticacao via JWT com Supabase Auth
+- All business logic runs on Supabase (no local database)
+- Data protected by row-level access rules in the database (Row Level Security)
+- Critical operations (inventory reservation, sale finalization, refunds) use transactional server-side functions
+- JWT-based authentication via Supabase Auth
 
 ## Screenshots
 
 <p align="center">
-  <img src="./docs/images/example.png" alt="Console de dados com navegacao por tabelas" width="700" />
+  <img src="./docs/images/example.png" alt="Data console with table navigation" width="700" />
   <br />
-  <em>Console de dados com navegacao por tabelas</em>
+  <em>Data console with table navigation</em>
 </p>
 
 <p align="center">
-  <img src="./docs/images/example2.png" alt="Dashboard de analytics" width="700" />
+  <img src="./docs/images/example2.png" alt="Analytics dashboard" width="700" />
   <br />
-  <em>Dashboard de analytics com metricas do negocio</em>
+  <em>Analytics dashboard with business metrics</em>
 </p>
 
 ## Tech Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
+| Layer | Technology |
+|-------|-----------|
 | Frontend | [React 19](https://react.dev) · [TanStack Router](https://tanstack.com/router) · [TanStack Table](https://tanstack.com/table) |
-| Estilo | [Tailwind CSS 4](https://tailwindcss.com) · [Radix UI](https://www.radix-ui.com) · [shadcn/ui](https://ui.shadcn.com) |
-| Estado | [Zustand](https://zustand.docs.pmnd.rs) |
-| Graficos | [Recharts](https://recharts.org) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com) · [Radix UI](https://www.radix-ui.com) · [shadcn/ui](https://ui.shadcn.com) |
+| State | [Zustand](https://zustand.docs.pmnd.rs) |
+| Charts | [Recharts](https://recharts.org) |
 | Desktop | [Tauri 2](https://v2.tauri.app) |
 | Backend | [Supabase](https://supabase.com) (Auth, Database, RLS, RPC) |
 | Build | [Vite](https://vite.dev) · [TypeScript](https://www.typescriptlang.org) |
 
-## Pre-requisitos
+## Prerequisites
 
-### Obrigatorios
+### Required
 
 - [Node.js 20+](https://nodejs.org)
 - [pnpm](https://pnpm.io/installation)
 - [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)
 
-### Para build desktop
+### For Desktop Builds
 
 - [Rust toolchain](https://rustup.rs)
-- [Dependencias do Tauri](https://v2.tauri.app/start/prerequisites/) (variam por sistema operacional)
+- [Tauri system dependencies](https://v2.tauri.app/start/prerequisites/) (varies by OS)
 
-### Opcionais
+### Optional
 
-- [Docker](https://www.docker.com) — apenas para o comando `db local-reset`
+- [Docker](https://www.docker.com) — only needed for the `db local-reset` command
 
 ## Quick Start
 
@@ -72,9 +72,9 @@ pnpm install
 pnpm uru setup
 ```
 
-O assistente de setup vai verificar pre-requisitos, criar `.env.local` interativamente, instalar dependencias, linkar seu projeto Supabase e aplicar as migrations.
+The setup wizard will check prerequisites, create `.env.local` interactively, install dependencies, link your Supabase project, and push migrations.
 
-Depois do setup:
+Once setup is done:
 
 ```bash
 pnpm uru dev
@@ -82,86 +82,86 @@ pnpm uru dev
 
 ## CLI Commands
 
-Todas as operacoes do projeto passam pelo CLI `pnpm uru`:
+All project operations go through the `pnpm uru` CLI:
 
-| Comando | Descricao |
-|---------|-----------|
-| `pnpm uru` | Menu interativo |
-| `pnpm uru setup` | Assistente de primeiro setup |
-| `pnpm uru dev` | Iniciar servidor de desenvolvimento (web ou desktop) |
-| `pnpm uru db` | Menu de operacoes do banco |
-| `pnpm uru db push` | Aplicar migrations (nao destrutivo) |
-| `pnpm uru db lint` | Validar migrations |
-| `pnpm uru db reset` | Resetar banco remoto linkado (destrutivo, pede confirmacao) |
-| `pnpm uru db local-reset` | Resetar stack local Docker |
-| `pnpm uru check` | Rodar Prettier + ESLint fix |
-| `pnpm uru --help` | Mostrar todos os comandos |
+| Command | Description |
+|---------|-------------|
+| `pnpm uru` | Interactive menu |
+| `pnpm uru setup` | First-time setup wizard |
+| `pnpm uru dev` | Start dev server (web or desktop) |
+| `pnpm uru db` | Database operations menu |
+| `pnpm uru db push` | Push migrations (non-destructive) |
+| `pnpm uru db lint` | Lint migrations |
+| `pnpm uru db reset` | Reset linked remote DB (destructive, requires confirmation) |
+| `pnpm uru db local-reset` | Reset local Docker stack |
+| `pnpm uru check` | Run Prettier + ESLint fix |
+| `pnpm uru --help` | Show all commands |
 
-### Flags do banco
+### Database Flags
 
-- `--relink` — forca `supabase link` antes de rodar comandos de banco
-- `SUPABASE_DB_PASSWORD` (variavel de ambiente) — evita prompts de senha durante link/reset/push
+- `--relink` — force `supabase link` before running db commands
+- `SUPABASE_DB_PASSWORD` env var — avoid password prompts during link/reset/push
 
-## Outros Scripts
+## Other Scripts
 
-- `pnpm build` — build de producao web
-- `pnpm preview` — preview do build
-- `pnpm test` — rodar testes via Vitest
+- `pnpm build` — production web build
+- `pnpm preview` — preview build output
+- `pnpm test` — run tests via Vitest
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 src/
-  routes/          # Rotas da aplicacao (/login, /products, /orders, /inventory, /settings)
+  routes/            # App routes (/login, /products, /orders, /inventory, /settings)
   lib/
-    supabase/      # Cliente Supabase, autenticacao e tratamento de erros
+    supabase/        # Supabase client, authentication, and error handling
     db/
-      repositories/  # Camada de acesso a dados (queries e mutations via Supabase)
+      repositories/  # Data access layer (queries and mutations via Supabase)
 supabase/
-  migrations/      # Contrato do banco: schema, politicas de acesso (RLS) e funcoes (RPC)
+  migrations/        # Database contract: schema, access policies (RLS), and functions (RPC)
 src-tauri/
-  src/lib.rs       # Shell desktop (sem logica de negocio)
-cli/               # Toolkit CLI interativo para setup e operacoes do projeto
+  src/lib.rs         # Desktop shell (no business logic)
+cli/                 # Interactive CLI toolkit for setup and project operations
 ```
 
-## Modelo de Seguranca
+## Security Model
 
-O URU protege seus dados em multiplas camadas. Cada usuario tem um perfil (admin, operador ou analista) que determina o que ele pode ver e fazer. As regras de acesso sao aplicadas diretamente no banco de dados, entao mesmo que alguem tente acessar a API diretamente, so vai conseguir ver os dados permitidos para o perfil dele.
+URU protects your data across multiple layers. Each user has a role (admin, operator, or analyst) that determines what they can see and do. Access rules are enforced directly in the database, so even if someone tries to hit the API directly, they can only access data allowed for their role.
 
-- **Autenticacao**: Supabase Auth com tokens JWT
-- **Perfis de acesso**: `admin` (acesso total), `operator` (operacoes do dia-a-dia), `analyst` (somente leitura)
-- **Row Level Security (RLS)**: politicas por tabela que filtram dados baseado no perfil do usuario
-- **Funcoes transacionais (RPC)**: operacoes criticas como reserva de estoque e finalizacao de venda rodam no servidor para garantir consistencia
+- **Authentication**: Supabase Auth with JWT tokens
+- **Roles**: `admin` (full access), `operator` (day-to-day operations), `analyst` (read-only)
+- **Row Level Security (RLS)**: per-table policies that filter data based on the user's role
+- **Transactional functions (RPC)**: critical operations like inventory reservation and sale finalization run server-side to guarantee consistency
 
-## Contribuindo
+## Contributing
 
-1. Faca um fork do repositorio
-2. Crie uma branch para sua feature ou fix (`git checkout -b minha-feature`)
-3. Faca suas alteracoes
-4. Rode `pnpm uru check` para garantir formatacao e lint
-5. Abra um Pull Request
+1. Fork the repository
+2. Create a branch for your feature or fix (`git checkout -b my-feature`)
+3. Make your changes
+4. Run `pnpm uru check` to ensure formatting and lint pass
+5. Open a Pull Request
 
-Encontrou um bug ou tem uma sugestao? [Abra uma issue](https://github.com/ericpbarcelos/uru/issues).
+Found a bug or have a suggestion? [Open an issue](https://github.com/ericpbarcelos/uru/issues).
 
 ## Troubleshooting
 
 - **`Supabase is not configured...`**
-  - Verifique se `.env.local` tem `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
-  - Reinicie `pnpm dev` depois de editar variaveis de ambiente
+  - Make sure `.env.local` has `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+  - Restart `pnpm dev` after editing env vars
 
-- **Erros de autenticacao ou rede no app desktop**
-  - Verifique firewall/VPN/proxy
-  - Confirme que a URL e chave do projeto Supabase estao corretas
-  - Tente reiniciar o app
+- **Auth or network errors in the desktop app**
+  - Check firewall/VPN/proxy rules
+  - Confirm Supabase project URL and key are correct
+  - Try restarting the app
 
-- **Build desktop falha**
-  - Confirme que o Rust toolchain esta instalado (`rustc --version`)
-  - Instale as [dependencias do Tauri](https://v2.tauri.app/start/prerequisites/) para seu OS
+- **Desktop build fails**
+  - Confirm the Rust toolchain is installed (`rustc --version`)
+  - Install [Tauri system dependencies](https://v2.tauri.app/start/prerequisites/) for your OS
 
-- **`pnpm uru db push` falha**
-  - Verifique se o projeto Supabase esta linkado (`pnpm uru db --relink`)
-  - Confirme que `SUPABASE_DB_PASSWORD` esta definida ou informe a senha quando solicitado
+- **`pnpm uru db push` fails**
+  - Check if the Supabase project is linked (`pnpm uru db --relink`)
+  - Confirm `SUPABASE_DB_PASSWORD` is set or enter the password when prompted
 
-## Licenca
+## License
 
-Este projeto e open-source. Veja o arquivo de licenca no repositorio para detalhes.
+This project is open-source. See the license file in the repository for details.

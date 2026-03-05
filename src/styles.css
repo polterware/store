@@ -156,7 +156,7 @@
 
   html,
   body {
-    @apply font-sans bg-background text-foreground;
+    @apply font-sans bg-background text-foreground overflow-hidden h-full;
   }
 
 }
