@@ -1,3 +1,42 @@
+use serde_json::{json, Value};
+
+#[tauri::command]
+async fn supabase_sign_in_with_password(
+    supabase_url: String,
+    publishable_key: String,
+    email: String,
+    password: String,
+) -> Result<Value, String> {
+    let endpoint = format!(
+        "{}/auth/v1/token?grant_type=password",
+        supabase_url.trim_end_matches('/')
+    );
+
+    let response = reqwest::Client::new()
+        .post(endpoint)
+        .header("apikey", &publishable_key)
+        .header("Authorization", format!("Bearer {publishable_key}"))
+        .json(&json!({
+          "email": email,
+          "password": password
+        }))
+        .send()
+        .await
+        .map_err(|error| format!("native_auth_request_failed: {error}"))?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|error| format!("native_auth_read_response_failed: {error}"))?;
+
+    if !status.is_success() {
+        return Err(format!("native_auth_http_{}: {}", status.as_u16(), body));
+    }
+
+    serde_json::from_str(&body).map_err(|error| format!("native_auth_invalid_json: {error}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -15,6 +54,7 @@ pub fn run() {
 
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![supabase_sign_in_with_password])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

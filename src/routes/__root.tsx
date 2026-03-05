@@ -1,7 +1,8 @@
-import { HeadContent, Link, Outlet, Scripts, createRootRoute, useLocation } from '@tanstack/react-router'
+import { HeadContent, Link, Outlet, Scripts, createRootRoute, useLocation, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 import appCss from '../styles.css?url'
+import { Button } from '@/components/ui/button'
 import { getSession, signOut } from '@/lib/supabase/auth'
 
 export const Route = createRootRoute({
@@ -30,6 +31,7 @@ export const Route = createRootRoute({
 })
 
 function RootLayout() {
+  const navigate = useNavigate()
   const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -56,39 +58,44 @@ function RootLayout() {
   const isLoginPage = location.pathname === '/login'
 
   return (
-    <div className="min-h-screen bg-app-shell text-app-foreground">
-      <header className="border-b border-app-border bg-app-panel/95 backdrop-blur">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <span className="truncate text-2xl font-brand">Urú</span>
           {!isLoginPage && (
             <nav className="flex items-center gap-4 text-sm">
-              <Link to="/products" className="text-app-muted transition-colors hover:text-app-foreground">
+              <Link to="/products" className="text-muted-foreground transition-colors hover:text-foreground">
                 Products
               </Link>
-              <Link to="/orders" className="text-app-muted transition-colors hover:text-app-foreground">
+              <Link to="/orders" className="text-muted-foreground transition-colors hover:text-foreground">
                 Orders
               </Link>
-              <Link to="/inventory" className="text-app-muted transition-colors hover:text-app-foreground">
+              <Link to="/inventory" className="text-muted-foreground transition-colors hover:text-foreground">
                 Inventory
               </Link>
-              <Link to="/settings" className="text-app-muted transition-colors hover:text-app-foreground">
+              <Link to="/settings" className="text-muted-foreground transition-colors hover:text-foreground">
                 Settings
               </Link>
               {isAuthenticated ? (
-                <button
+                <Button
                   type="button"
-                  className="rounded bg-app-panel-strong px-3 py-1 text-xs text-app-foreground transition-colors hover:bg-app-hover"
+                  size="sm"
+                  variant="outline"
                   onClick={async () => {
                     await signOut()
-                    window.location.href = '/login'
+                    await navigate({ to: '/login' })
                   }}
                 >
                   Sign out
-                </button>
+                </Button>
               ) : (
-                <Link to="/login" className="rounded bg-app-panel-strong px-3 py-1 text-xs text-app-foreground transition-colors hover:bg-app-hover">
-                  Sign in
-                </Link>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                >
+                  <Link to="/login">Sign in</Link>
+                </Button>
               )}
             </nav>
           )}

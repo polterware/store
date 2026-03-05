@@ -1,6 +1,12 @@
-import { FormEvent, useEffect, useState } from 'react'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { SettingsStore } from '@/lib/stores/settings-store'
 import { getUser, getUserRoles } from '@/lib/supabase/auth'
 
@@ -15,8 +21,9 @@ export const Route = createFileRoute('/settings')({
 })
 
 function SettingsPage() {
+  const navigate = useNavigate()
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [roles, setRoles] = useState<string[]>([])
+  const [roles, setRoles] = useState<Array<string>>([])
   const [settingKey, setSettingKey] = useState('dashboard.default_range')
   const [settingValue, setSettingValue] = useState('{"days":30}')
   const [message, setMessage] = useState<string | null>(null)
@@ -29,7 +36,7 @@ function SettingsPage() {
       try {
         const user = await getUser()
         if (!user) {
-          window.location.href = '/login'
+          await navigate({ to: '/login' })
           return
         }
 
@@ -89,49 +96,57 @@ function SettingsPage() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-app-muted">Local desktop settings via Tauri Store (not persisted in Supabase).</p>
+        <p className="text-sm text-muted-foreground">Local desktop settings via Tauri Store (not persisted in Supabase).</p>
       </header>
 
-      <div className="rounded border border-app-border bg-app-panel p-4 text-sm">
-        <p>User: {userEmail ?? 'Unknown'}</p>
-        <p>Roles: {roles.length ? roles.join(', ') : 'No roles found'}</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Session Context</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <p>User: {userEmail ?? 'Unknown'}</p>
+          <p>Roles: {roles.length ? roles.join(', ') : 'No roles found'}</p>
+        </CardContent>
+      </Card>
 
-      <form className="space-y-3 rounded border border-app-border bg-app-panel p-4" onSubmit={onSaveSetting}>
-        <label className="block text-sm">
-          Key
-          <input
-            className="mt-2 w-full rounded border border-app-border bg-app-panel-strong px-3 py-2"
-            value={settingKey}
-            onChange={(event) => setSettingKey(event.target.value)}
-          />
-        </label>
+      <Card>
+        <CardHeader>
+          <CardTitle>Local Settings</CardTitle>
+          <CardDescription>Persisted in Tauri Store on this desktop.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-3" onSubmit={onSaveSetting}>
+            <div className="space-y-2">
+              <Label htmlFor="setting-key">Key</Label>
+              <Input
+                id="setting-key"
+                value={settingKey}
+                onChange={(event) => setSettingKey(event.target.value)}
+              />
+            </div>
 
-        <label className="block text-sm">
-          JSON Value
-          <textarea
-            className="mt-2 min-h-24 w-full rounded border border-app-border bg-app-panel-strong px-3 py-2 font-mono text-xs"
-            value={settingValue}
-            onChange={(event) => setSettingValue(event.target.value)}
-          />
-        </label>
+            <div className="space-y-2">
+              <Label htmlFor="setting-json">JSON Value</Label>
+              <Textarea
+                id="setting-json"
+                className="min-h-24 font-mono text-xs"
+                value={settingValue}
+                onChange={(event) => setSettingValue(event.target.value)}
+              />
+            </div>
 
-        <div className="flex gap-2">
-          <button type="submit" className="rounded bg-app-success px-3 py-2 text-sm font-medium text-black transition-colors hover:opacity-90">
-            Save local setting
-          </button>
-          <button
-            type="button"
-            onClick={onLoadSetting}
-            className="rounded border border-app-border bg-app-panel-strong px-3 py-2 text-sm font-medium transition-colors hover:bg-app-hover"
-          >
-            Load key
-          </button>
-        </div>
+            <div className="flex gap-2">
+              <Button type="submit">Save local setting</Button>
+              <Button type="button" variant="outline" onClick={onLoadSetting}>
+                Load key
+              </Button>
+            </div>
 
-        {message ? <p className="text-app-success">{message}</p> : null}
-        {error ? <p className="text-app-danger">{error}</p> : null}
-      </form>
+            {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          </form>
+        </CardContent>
+      </Card>
     </section>
   )
 }

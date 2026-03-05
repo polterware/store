@@ -1,9 +1,10 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
 let supabaseClient: SupabaseClient<Database> | null = null
 
-function getSupabaseConfig() {
+export function getSupabaseConfig() {
   const url = import.meta.env.VITE_SUPABASE_URL
   const publishableDefaultKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 

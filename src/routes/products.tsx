@@ -1,9 +1,15 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 
+import type { Product } from '@/types/domain'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getUser } from '@/lib/supabase/auth'
 import { ProductsRepository } from '@/lib/db/repositories'
-import type { Product } from '@/types/domain'
 
 export const Route = createFileRoute('/products')({
   beforeLoad: async () => {
@@ -16,7 +22,8 @@ export const Route = createFileRoute('/products')({
 })
 
 function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const navigate = useNavigate()
+  const [products, setProducts] = useState<Array<Product>>([])
   const [title, setTitle] = useState('')
   const [sku, setSku] = useState('')
   const [price, setPrice] = useState('0')
@@ -47,7 +54,7 @@ function ProductsPage() {
 
     const user = await getUser()
     if (!user) {
-      window.location.href = '/login'
+      await navigate({ to: '/login' })
       return
     }
 
@@ -74,77 +81,101 @@ function ProductsPage() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Products</h1>
-        <p className="text-sm text-app-muted">Supabase-only catalog management. Active SKUs: {totalSkus}</p>
+        <p className="text-sm text-muted-foreground">Supabase-only catalog management. Active SKUs: {totalSkus}</p>
       </header>
 
-      <form className="grid gap-3 rounded border border-app-border bg-app-panel p-4 md:grid-cols-4" onSubmit={onCreateProduct}>
-        <input
-          className="rounded border border-app-border bg-app-panel-strong px-3 py-2 text-sm"
-          placeholder="Product title"
-          required
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-        />
-        <input
-          className="rounded border border-app-border bg-app-panel-strong px-3 py-2 text-sm"
-          placeholder="SKU"
-          required
-          value={sku}
-          onChange={(event) => setSku(event.target.value)}
-        />
-        <input
-          className="rounded border border-app-border bg-app-panel-strong px-3 py-2 text-sm"
-          placeholder="Price"
-          type="number"
-          min="0"
-          step="0.01"
-          required
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-        />
-        <button type="submit" className="rounded bg-app-success px-3 py-2 text-sm font-medium text-black transition-colors hover:opacity-90">
-          Add product
-        </button>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>New Product</CardTitle>
+          <CardDescription>Create a product using the default catalog fields.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-3 md:grid-cols-4" onSubmit={onCreateProduct}>
+            <div className="space-y-2">
+              <Label htmlFor="product-title">Title</Label>
+              <Input
+                id="product-title"
+                placeholder="Product title"
+                required
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="product-sku">SKU</Label>
+              <Input
+                id="product-sku"
+                placeholder="SKU"
+                required
+                value={sku}
+                onChange={(event) => setSku(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="product-price">Price</Label>
+              <Input
+                id="product-price"
+                placeholder="Price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" className="w-full">
+                Add product
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
-      {error ? <p className="text-sm text-app-danger">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="overflow-hidden rounded border border-app-border">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-app-panel text-left text-app-muted">
-            <tr>
-              <th className="px-4 py-2">Title</th>
-              <th className="px-4 py-2">SKU</th>
-              <th className="px-4 py-2">Price</th>
-              <th className="px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={4}>
-                  Loading...
-                </td>
-              </tr>
-            ) : products.length === 0 ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={4}>
-                  No products yet.
-                </td>
-              </tr>
-            ) : (
-              products.map((product) => (
-                <tr key={product.id} className="border-t border-app-border">
-                  <td className="px-4 py-2">{product.title}</td>
-                  <td className="px-4 py-2">{product.sku}</td>
-                  <td className="px-4 py-2">{product.price}</td>
-                  <td className="px-4 py-2 capitalize">{product.lifecycle_status}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Catalog</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={4}>
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : products.length === 0 ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={4}>
+                    No products yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                products.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>{product.title}</TableCell>
+                    <TableCell>{product.sku}</TableCell>
+                    <TableCell>{product.price}</TableCell>
+                    <TableCell className="capitalize">{product.lifecycle_status}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   )
 }

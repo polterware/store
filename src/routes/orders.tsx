@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getUser } from '@/lib/supabase/auth'
 import { OrdersRepository } from '@/lib/db/repositories'
 import type { Order } from '@/types/domain'
@@ -54,49 +56,54 @@ function OrdersPage() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Orders</h1>
-        <p className="text-sm text-app-muted">Single-context order management with Supabase RLS.</p>
+        <p className="text-sm text-muted-foreground">Single-context order management with Supabase RLS.</p>
       </header>
 
-      {error ? <p className="text-sm text-app-danger">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="overflow-hidden rounded border border-app-border">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-app-panel text-left text-app-muted">
-            <tr>
-              <th className="px-4 py-2">Order</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Payment</th>
-              <th className="px-4 py-2">Total</th>
-              <th className="px-4 py-2">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={5}>
-                  Loading...
-                </td>
-              </tr>
-            ) : orders.length === 0 ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={5}>
-                  No orders yet.
-                </td>
-              </tr>
-            ) : (
-              orders.map((order) => (
-                <tr key={order.id} className="border-t border-app-border">
-                  <td className="px-4 py-2 font-medium">{order.order_number}</td>
-                  <td className="px-4 py-2 capitalize">{order.status}</td>
-                  <td className="px-4 py-2 capitalize">{order.payment_status}</td>
-                  <td className="px-4 py-2">{order.total_amount}</td>
-                  <td className="px-4 py-2">{new Date(order.created_at).toLocaleString()}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Order List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={5}>
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : orders.length === 0 ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={5}>
+                    No orders yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.order_number}</TableCell>
+                    <TableCell className="capitalize">{order.status}</TableCell>
+                    <TableCell className="capitalize">{order.payment_status}</TableCell>
+                    <TableCell>{order.total_amount}</TableCell>
+                    <TableCell>{new Date(order.created_at).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   )
 }

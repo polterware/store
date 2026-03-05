@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getUser } from '@/lib/supabase/auth'
 import { InventoryLevelsRepository } from '@/lib/db/repositories'
 import type { InventoryLevel } from '@/types/domain'
@@ -54,49 +56,54 @@ function InventoryPage() {
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Inventory</h1>
-        <p className="text-sm text-app-muted">Live inventory levels sourced only from Supabase.</p>
+        <p className="text-sm text-muted-foreground">Live inventory levels sourced only from Supabase.</p>
       </header>
 
-      {error ? <p className="text-sm text-app-danger">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="overflow-hidden rounded border border-app-border">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-app-panel text-left text-app-muted">
-            <tr>
-              <th className="px-4 py-2">Inventory level</th>
-              <th className="px-4 py-2">On hand</th>
-              <th className="px-4 py-2">Reserved</th>
-              <th className="px-4 py-2">Available</th>
-              <th className="px-4 py-2">Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={5}>
-                  Loading...
-                </td>
-              </tr>
-            ) : levels.length === 0 ? (
-              <tr>
-                <td className="px-4 py-3 text-app-muted" colSpan={5}>
-                  No inventory levels yet.
-                </td>
-              </tr>
-            ) : (
-              levels.map((level) => (
-                <tr key={level.id} className="border-t border-app-border">
-                  <td className="px-4 py-2">{level.id.slice(0, 8)}</td>
-                  <td className="px-4 py-2">{level.quantity_on_hand}</td>
-                  <td className="px-4 py-2">{level.quantity_reserved}</td>
-                  <td className="px-4 py-2">{level.quantity_available}</td>
-                  <td className="px-4 py-2">{new Date(level.updated_at).toLocaleString()}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Inventory Levels</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Inventory level</TableHead>
+                <TableHead>On hand</TableHead>
+                <TableHead>Reserved</TableHead>
+                <TableHead>Available</TableHead>
+                <TableHead>Updated</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={5}>
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : levels.length === 0 ? (
+                <TableRow>
+                  <TableCell className="text-muted-foreground" colSpan={5}>
+                    No inventory levels yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                levels.map((level) => (
+                  <TableRow key={level.id}>
+                    <TableCell>{level.id.slice(0, 8)}</TableCell>
+                    <TableCell>{level.quantity_on_hand}</TableCell>
+                    <TableCell>{level.quantity_reserved}</TableCell>
+                    <TableCell>{level.quantity_available}</TableCell>
+                    <TableCell>{new Date(level.updated_at).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </section>
   )
 }
