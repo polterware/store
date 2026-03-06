@@ -107,7 +107,7 @@ function LoginPage() {
           }}
           footer={
             <p className="text-muted-foreground text-xs">
-              Tip: `polterbase app configure ops` can write this configuration
+              Tip: `polter app configure ops` can write this configuration
               for the installed app before first launch.
             </p>
           }

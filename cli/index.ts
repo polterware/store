@@ -21,17 +21,17 @@ function printHelp() {
     pnpm ops              Show this help
     pnpm ops dev          Start dev server
 
-  ${pc.dim("Supabase workflows moved to Polterbase:")}
-    npx polterbase app setup ops --path .
-    npx polterbase app link ops --path .
-    npx polterbase app migrate ops push --path .
+  ${pc.dim("Supabase workflows moved to Polter:")}
+    npx polter app setup ops --path .
+    npx polter app link ops --path .
+    npx polter app migrate ops push --path .
 `);
 }
 
 function printMovedCommand(commandName: string) {
   console.log(
     pc.yellow(
-      `\n  ${commandName} moved to Polterbase.\n  Use ${pc.bold("npx polterbase app ...")} for setup, link, configure, install, and migrations.\n`,
+      `\n  ${commandName} moved to Polter.\n  Use ${pc.bold("npx polter app ...")} for setup, link, configure, install, and migrations.\n`,
     ),
   );
 }
@@ -85,7 +85,7 @@ async function main() {
   printHelp();
   const choice = await promptMainMenu();
   await runCommand(choice);
-  outro(pc.dim("Use Polterbase for Supabase workflows."));
+  outro(pc.dim("Use Polter for Supabase workflows."));
 }
 
 main().catch((err) => {
