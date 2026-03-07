@@ -2331,6 +2331,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ops"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-log",
+ "tauri-plugin-store",
+]
+
+[[package]]
 name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4401,20 +4415,6 @@ dependencies = [
  "serde",
  "unic-ucd-ident",
  "url",
-]
-
-[[package]]
-name = "uru"
-version = "0.1.0"
-dependencies = [
- "log",
- "reqwest",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-log",
- "tauri-plugin-store",
 ]
 
 [[package]]

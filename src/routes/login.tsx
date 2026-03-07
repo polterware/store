@@ -2,15 +2,12 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
-import { SupabaseConnectionForm } from "@/components/app/supabase-connection-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { resetSupabaseClient } from "@/lib/supabase/client";
 import {
   refreshResolvedSupabaseConfig,
-  saveRuntimeSupabaseConfig,
   type RuntimeSupabaseConfig,
 } from "@/lib/supabase/runtime-config";
 import { getSession, signInWithPassword } from "@/lib/supabase/auth";
@@ -19,7 +16,7 @@ export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
     const config = await refreshResolvedSupabaseConfig();
     if (!config) {
-      return;
+      throw redirect({ to: "/onboarding" });
     }
 
     const session = await getSession();
@@ -92,30 +89,6 @@ function LoginPage() {
     );
   }
 
-  if (!config) {
-    return (
-      <section className="mx-auto mt-16 w-full max-w-lg space-y-4">
-        <SupabaseConnectionForm
-          initialConfig={null}
-          title="Connect Ops to Supabase"
-          description="This desktop app needs a Supabase connection before anyone can sign in."
-          submitLabel="Save connection"
-          onSubmit={async (input) => {
-            const savedConfig = await saveRuntimeSupabaseConfig(input);
-            resetSupabaseClient();
-            setConfig(savedConfig);
-          }}
-          footer={
-            <p className="text-muted-foreground text-xs">
-              Tip: `polter app configure ops` can write this configuration
-              for the installed app before first launch.
-            </p>
-          }
-        />
-      </section>
-    );
-  }
-
   return (
     <section className="mx-auto mt-20 w-full max-w-sm">
       <Card>
@@ -124,11 +97,24 @@ function LoginPage() {
         </CardHeader>
         <CardContent>
           <div className="bg-primary/6 mb-4 rounded-md border border-primary/15 p-3 text-xs">
-            <p className="font-medium">Connected project</p>
-            <p className="text-muted-foreground break-all">{config.url}</p>
-            <p className="text-muted-foreground">
-              Source: {config.source === "env" ? "Environment fallback" : "Runtime config"}
-            </p>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-medium">Connected project</p>
+                <p className="text-muted-foreground break-all">{config?.url}</p>
+                <p className="text-muted-foreground">
+                  Source: {config?.source === "env" ? "Environment fallback" : "Runtime config"}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground -mr-1 -mt-1 shrink-0 text-xs"
+                onClick={() => void navigate({ to: "/onboarding", search: { reconfigure: true } })}
+              >
+                Change
+              </Button>
+            </div>
           </div>
 
           <form className="space-y-4" onSubmit={onSubmit}>

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const config = await refreshResolvedSupabaseConfig();
     if (!config) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: "/onboarding" });
     }
 
     const session = await getSession();

@@ -119,6 +119,7 @@ function RootLayout() {
   }, [config?.publishableKey, config?.url]);
 
   const isLoginPage = location.pathname === "/login";
+  const isOnboardingPage = location.pathname === "/onboarding";
 
   const pageTitle = useMemo(() => {
     if (location.pathname === "/settings") {
@@ -162,6 +163,10 @@ function RootLayout() {
     );
   }
 
+  if (isOnboardingPage) {
+    return <Outlet />;
+  }
+
   if (isLoginPage) {
     return (
       <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
@@ -192,8 +197,8 @@ function RootLayout() {
               Complete the runtime connection setup before using the app.
             </p>
             <div className="mt-4">
-              <Button type="button" onClick={() => void navigate({ to: "/login" })}>
-                Open connection setup
+              <Button type="button" onClick={() => void navigate({ to: "/onboarding" })}>
+                Set up connection
               </Button>
             </div>
           </div>

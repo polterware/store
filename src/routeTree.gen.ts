@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -31,6 +32,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/inventory'
     | '/login'
+    | '/onboarding'
     | '/orders'
     | '/products'
     | '/settings'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/inventory'
     | '/login'
+    | '/onboarding'
     | '/orders'
     | '/products'
     | '/settings'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/inventory'
     | '/login'
+    | '/onboarding'
     | '/orders'
     | '/products'
     | '/settings'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   OrdersRoute: typeof OrdersRoute
   ProductsRoute: typeof ProductsRoute
   SettingsRoute: typeof SettingsRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   OrdersRoute: OrdersRoute,
   ProductsRoute: ProductsRoute,
   SettingsRoute: SettingsRoute,
