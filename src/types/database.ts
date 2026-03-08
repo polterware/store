@@ -1133,6 +1133,10 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      bootstrap_first_admin: {
+        Args: { p_user_email: string };
+        Returns: boolean;
+      };
       reserve_inventory_stock: {
         Args: {
           p_product_id: string;

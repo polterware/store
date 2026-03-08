@@ -90,33 +90,12 @@ function LoginPage() {
   }
 
   return (
-    <section className="mx-auto mt-20 w-full max-w-sm">
+    <section className="mx-auto mt-20 w-full max-w-sm space-y-3">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">Sign in to Ops</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-primary/6 mb-4 rounded-md border border-primary/15 p-3 text-xs">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-medium">Connected project</p>
-                <p className="text-muted-foreground break-all">{config?.url}</p>
-                <p className="text-muted-foreground">
-                  Source: {config?.source === "env" ? "Environment fallback" : "Runtime config"}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground -mr-1 -mt-1 shrink-0 text-xs"
-                onClick={() => void navigate({ to: "/onboarding", search: { reconfigure: true } })}
-              >
-                Change
-              </Button>
-            </div>
-          </div>
-
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -150,6 +129,18 @@ function LoginPage() {
           </form>
         </CardContent>
       </Card>
+
+      <div className="text-muted-foreground flex items-center justify-center gap-1.5 text-xs">
+        <span className="truncate max-w-[220px]">{config?.url}</span>
+        <span>&middot;</span>
+        <button
+          type="button"
+          className="hover:text-foreground underline-offset-4 hover:underline"
+          onClick={() => void navigate({ to: "/onboarding", search: { reconfigure: true } })}
+        >
+          Change
+        </button>
+      </div>
     </section>
   );
 }

@@ -158,6 +158,41 @@ export async function getUserRoles(userId: string): Promise<Array<AppRole>> {
     .map((role) => role.code);
 }
 
+export async function signUpWithPassword(
+  email: string,
+  password: string,
+  fullName: string,
+) {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+    },
+  });
+
+  if (error) {
+    handleSupabaseError(error);
+  }
+
+  return data;
+}
+
+export async function bootstrapFirstAdmin(email: string): Promise<boolean> {
+  const supabase = getSupabaseClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC type not fully resolved by supabase-js generics
+  const { data, error } = await (supabase.rpc as any)("bootstrap_first_admin", {
+    p_user_email: email,
+  });
+
+  if (error) {
+    handleSupabaseError(error);
+  }
+
+  return data as boolean;
+}
+
 export async function assertAuthenticated() {
   const session = await getSession();
   if (!session) {

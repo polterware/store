@@ -69,9 +69,9 @@ export function AppSidebar({ pathname }: AppSidebarProps) {
 
   return (
     <Sidebar>
-      <SidebarHeader className="pt-4 md:pt-6">
+      <SidebarHeader className="pt-4 md:pt-8">
         <div className="px-2 py-1">
-          <p className="text-primary font-brand text-xl">Urú</p>
+          <p className="font-medium font-brand text-xl">OPS</p>
         </div>
         <SidebarInput
           aria-label="Filter tables"

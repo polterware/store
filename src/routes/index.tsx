@@ -15,6 +15,6 @@ export const Route = createFileRoute("/")({
       throw redirect({ to: "/login" });
     }
 
-    throw redirect({ to: "/tables/$table", params: { table: "products" } });
+    throw redirect({ to: "/analytics" });
   },
 });

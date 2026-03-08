@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { AdminSignupForm } from "@/components/app/onboarding/admin-signup-form";
 import { SupabaseConnectionForm } from "@/components/app/supabase-connection-form";
 import { StepIndicator } from "@/components/app/onboarding/step-indicator";
 import { WelcomeIllustration } from "@/components/app/onboarding/welcome-illustration";
@@ -34,12 +35,16 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 function OnboardingPage() {
   const navigate = useNavigate();
   const { reconfigure } = Route.useSearch();
   const [step, setStep] = useState(reconfigure ? 2 : 0);
+
+  useEffect(() => {
+    if (reconfigure) setStep(2);
+  }, [reconfigure]);
 
   return (
     <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
@@ -56,11 +61,22 @@ function OnboardingPage() {
         {step === 2 && (
           <StepConfigure
             onBack={reconfigure ? () => void navigate({ to: "/login" }) : () => setStep(1)}
-            onDone={() => void navigate({ to: "/login" })}
+            onDone={
+              reconfigure
+                ? () => void navigate({ to: "/login" })
+                : () => setStep(3)
+            }
+          />
+        )}
+        {step === 3 && (
+          <StepCreateAdmin
+            onBack={() => setStep(2)}
+            onDone={() => void navigate({ to: "/tables/$table", params: { table: "products" } })}
+            onGoToLogin={() => void navigate({ to: "/login" })}
           />
         )}
 
-        <StepIndicator total={TOTAL_STEPS} current={step} />
+        {!reconfigure && <StepIndicator total={TOTAL_STEPS} current={step} />}
       </main>
     </div>
   );
@@ -151,6 +167,27 @@ function StepConfigure({
           </p>
         }
       />
+    </div>
+  );
+}
+
+function StepCreateAdmin({
+  onBack,
+  onDone,
+  onGoToLogin,
+}: {
+  onBack: () => void;
+  onDone: () => void;
+  onGoToLogin: () => void;
+}) {
+  return (
+    <div className="w-full space-y-4">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          &larr; Back
+        </Button>
+      </div>
+      <AdminSignupForm onDone={onDone} onGoToLogin={onGoToLogin} />
     </div>
   );
 }

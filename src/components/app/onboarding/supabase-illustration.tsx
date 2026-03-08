@@ -6,11 +6,12 @@ export function SupabaseIllustration({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Cloud shape */}
-      <ellipse cx="160" cy="60" rx="60" ry="30" className="fill-muted-foreground/8 stroke-muted-foreground/25" strokeWidth="1.5" />
-      <ellipse cx="120" cy="65" rx="35" ry="22" className="fill-muted-foreground/6 stroke-muted-foreground/20" strokeWidth="1" />
-      <ellipse cx="200" cy="65" rx="35" ry="22" className="fill-muted-foreground/6 stroke-muted-foreground/20" strokeWidth="1" />
-      <rect x="85" y="58" width="150" height="20" className="fill-background" />
+      {/* Cloud shape — upper arcs only, no bottom mask needed */}
+      <path
+        d="M90,72 Q90,43 120,43 Q135,20 160,30 Q185,20 200,43 Q230,43 230,72 Z"
+        className="fill-muted-foreground/8 stroke-muted-foreground/25"
+        strokeWidth="1.5"
+      />
 
       {/* Connection lines */}
       <line x1="130" y1="80" x2="130" y2="110" className="stroke-primary/40" strokeWidth="1.5" strokeDasharray="4 3" />
