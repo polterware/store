@@ -8,6 +8,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Toaster, toast } from "sonner";
 
 import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/app/app-sidebar";
@@ -25,6 +26,7 @@ import {
   subscribeToSupabaseConfigChanges,
   type RuntimeSupabaseConfig,
 } from "@/lib/supabase/runtime-config";
+import { checkForAppUpdate } from "@/lib/updater";
 
 export const Route = createRootRoute({
   ssr: false,
@@ -117,6 +119,23 @@ function RootLayout() {
       subscription.unsubscribe();
     };
   }, [config?.publishableKey, config?.url]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !config) return;
+
+    void checkForAppUpdate().then((status) => {
+      if (status.state === "available") {
+        toast(`Update v${status.version} available`, {
+          description: "Go to Settings to install it.",
+          action: {
+            label: "Settings",
+            onClick: () => void navigate({ to: "/settings" }),
+          },
+          duration: 10000,
+        });
+      }
+    });
+  }, [isAuthenticated, config?.url]);
 
   const isLoginPage = location.pathname === "/login";
   const isOnboardingPage = location.pathname === "/onboarding";
@@ -269,6 +288,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="h-full">
         {children}
+        <Toaster theme="dark" position="bottom-right" />
         <Scripts />
       </body>
     </html>

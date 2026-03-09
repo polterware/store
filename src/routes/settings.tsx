@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 import { SupabaseConnectionForm } from "@/components/app/supabase-connection-form";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,11 @@ import {
   saveRuntimeSupabaseConfig,
   type RuntimeSupabaseConfig,
 } from "@/lib/supabase/runtime-config";
+import {
+  checkForAppUpdate,
+  getCurrentVersion,
+  type UpdateStatus,
+} from "@/lib/updater";
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: async () => {
@@ -38,6 +44,105 @@ export const Route = createFileRoute("/settings")({
   },
   component: SettingsPage,
 });
+
+function AppVersionCard() {
+  const [version, setVersion] = useState<string | null>(null);
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({
+    state: "idle",
+  });
+
+  useEffect(() => {
+    void getCurrentVersion().then(setVersion);
+  }, []);
+
+  async function onCheckUpdate() {
+    setUpdateStatus({ state: "checking" });
+    const status = await checkForAppUpdate();
+    setUpdateStatus(status);
+  }
+
+  async function onInstallUpdate() {
+    if (updateStatus.state !== "available") return;
+
+    const { update } = updateStatus;
+    try {
+      setUpdateStatus({ state: "downloading", progress: 0 });
+      await update.downloadAndInstall((event) => {
+        if (event.event === "Started" && event.data.contentLength) {
+          setUpdateStatus({ state: "downloading", progress: 0 });
+        } else if (event.event === "Progress") {
+          setUpdateStatus((prev) =>
+            prev.state === "downloading"
+              ? { ...prev, progress: prev.progress + (event.data.chunkLength ?? 0) }
+              : prev,
+          );
+        } else if (event.event === "Finished") {
+          setUpdateStatus({ state: "ready" });
+        }
+      });
+      await relaunch();
+    } catch (err) {
+      setUpdateStatus({
+        state: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>App Version</CardTitle>
+        <CardDescription>
+          {version ? `v${version}` : "Loading…"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {updateStatus.state === "idle" && (
+          <Button type="button" variant="outline" onClick={onCheckUpdate}>
+            Check for updates
+          </Button>
+        )}
+
+        {updateStatus.state === "checking" && (
+          <p className="text-muted-foreground text-sm">Checking for updates…</p>
+        )}
+
+        {updateStatus.state === "up-to-date" && (
+          <p className="text-muted-foreground text-sm">You're on the latest version.</p>
+        )}
+
+        {updateStatus.state === "available" && (
+          <div className="space-y-2">
+            <p className="text-sm">
+              Version <strong>v{updateStatus.version}</strong> is available.
+            </p>
+            <Button type="button" onClick={onInstallUpdate}>
+              Install and restart
+            </Button>
+          </div>
+        )}
+
+        {updateStatus.state === "downloading" && (
+          <p className="text-muted-foreground text-sm">Downloading update…</p>
+        )}
+
+        {updateStatus.state === "ready" && (
+          <p className="text-muted-foreground text-sm">Restarting…</p>
+        )}
+
+        {updateStatus.state === "error" && (
+          <div className="space-y-2">
+            <p className="text-destructive text-sm">{updateStatus.message}</p>
+            <Button type="button" variant="outline" onClick={onCheckUpdate}>
+              Retry
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -135,6 +240,8 @@ function SettingsPage() {
           Local desktop settings via Tauri Store (not persisted in Supabase).
         </p>
       </header>
+
+      <AppVersionCard />
 
       <Card>
         <CardHeader>
