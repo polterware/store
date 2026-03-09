@@ -159,9 +159,12 @@ select_artifact() {
   # Extract asset names and URLs as "name url" pairs (one per line)
   local assets
   assets="$(printf '%s' "$RELEASE_JSON" \
-    | grep -E '"(name|browser_download_url)"' \
-    | paste - - \
-    | sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*"browser_download_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1 \2/')"
+    | grep '"browser_download_url"' \
+    | sed 's/.*"browser_download_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' \
+    | while IFS= read -r url; do
+        name="$(basename "$url")"
+        printf '%s %s\n' "$name" "$url"
+      done)"
 
   [[ -z "$assets" ]] && error "No assets found in release $RELEASE_TAG."
 
