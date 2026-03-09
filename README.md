@@ -80,19 +80,14 @@ pnpm install
 4. Start the dev server:
 
 ```bash
-pnpm ops dev
+pnpm dev          # desktop app (Tauri)
+pnpm dev:web      # web-only (no Tauri required)
 ```
 
-## CLI Commands
+## Scripts
 
-| Command            | Description                       |
-| ------------------ | --------------------------------- |
-| `pnpm ops`         | Show help                         |
-| `pnpm ops dev`     | Start dev server (web or desktop) |
-| `pnpm ops --help`  | Show all commands                 |
-
-## Other Scripts
-
+- `pnpm dev` — start the desktop app via Tauri
+- `pnpm dev:web` — start the web dev server only
 - `pnpm build` — production web build
 - `pnpm preview` — preview build output
 - `pnpm test` — run tests via Vitest
@@ -110,7 +105,6 @@ supabase/
   migrations/        # Database contract: schema, access policies (RLS), and functions (RPC)
 src-tauri/
   src/lib.rs         # Desktop shell (no business logic)
-cli/                 # Local development launcher (`pnpm ops dev`)
 ```
 
 Runtime Supabase connection can now come from either:

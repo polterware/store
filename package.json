@@ -10,8 +10,7 @@
     "test": "vitest run --passWithNoTests",
     "lint": "eslint",
     "format": "prettier",
-    "check": "prettier --write . && eslint --fix",
-    "ops": "tsx cli/index.ts"
+    "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
@@ -52,7 +51,6 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@clack/prompts": "^1.1.0",
     "@tanstack/devtools-vite": "^0.3.11",
     "@tanstack/eslint-config": "^0.3.0",
     "@tauri-apps/cli": "^2.9.6",
@@ -63,7 +61,6 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^27.0.0",
-    "picocolors": "^1.1.1",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "tsx": "^4.21.0",
