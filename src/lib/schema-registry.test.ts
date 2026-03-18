@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import * as schemaRegistry from "@/lib/schema-registry";
 
 describe("schema registry", () => {
-  it("covers all 28 tables from the schema contract", () => {
-    expect(schemaRegistry.SCHEMA_REGISTRY).toHaveLength(28);
-    expect(new Set(schemaRegistry.SCHEMA_TABLE_NAMES).size).toBe(28);
+  it("covers all 31 tables from the schema contract", () => {
+    expect(schemaRegistry.SCHEMA_REGISTRY).toHaveLength(31);
+    expect(new Set(schemaRegistry.SCHEMA_TABLE_NAMES).size).toBe(31);
   });
 
   it("defaults to soft delete strategy for every table in this phase", () => {
