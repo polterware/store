@@ -1,121 +1,107 @@
 # Getting Started
 
-This guide covers local setup for the current Ops repository. Ops is a Tauri desktop app with a React/TanStack renderer and Supabase as the external backend.
+This guide covers local setup for the current Ops repository. Ops is an Electron desktop app with a React/TanStack renderer and Supabase as the external backend.
 
 ## Prerequisites
 
-- Node.js 20 or newer.
+- Node.js 22 or newer.
 - pnpm.
-- Rust toolchain compatible with Tauri 2.
-- Tauri system dependencies for your operating system.
-- A Supabase project that matches the local type contract in `src/types/database.ts`.
+- A Supabase project with the schema represented by `src/types/database.ts`.
+- Publishable/default Supabase key for development and runtime configuration.
 
-The repository does not include a root-level Supabase project directory, migration files, seed files, or a schema reset script. Database setup must be handled outside this checkout unless those files are added later.
+The repository does not include Supabase migrations or seed scripts. The connected Supabase project must provide the tables, RLS policies, and RPC functions expected by the app.
 
 ## Install Dependencies
-
-From the repository root:
 
 ```bash
 pnpm install
 ```
 
-## Configure Supabase
+## Optional Development Environment
 
-Ops resolves its Supabase connection from runtime configuration first, then development fallback variables.
-
-### Runtime connection
-
-The preferred desktop flow is the onboarding UI at `/onboarding`. It asks for:
-
-- Supabase URL.
-- Publishable key.
-- Optional project ref.
-
-Saved runtime config is persisted locally through Tauri Store. In browser-only development, the same runtime connection is stored in localStorage.
-
-### Development fallback
-
-For source checkout development, copy `.env.example` to `.env.local`:
+Copy the example environment file if you want a browser/development fallback:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Then fill:
+Supported variables:
 
 ```text
 VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=
 ```
 
-Use only publishable/default client keys. Never use a Supabase service-role key in `.env.local`, runtime config, installer payloads, or frontend code.
+Do not use a Supabase service-role key. This is a client-side desktop app.
 
-## Runtime Config Sources
+## Runtime Supabase Connection
 
-The resolver in `src/lib/supabase/runtime-config.ts` checks:
+Installed users configure Supabase through the onboarding flow or an imported bootstrap payload. Saved runtime config is persisted locally through the Electron settings bridge. In browser-only development, the same runtime connection can be stored in localStorage.
 
-1. A one-time bootstrap payload consumed by the Tauri command `consume_supabase_bootstrap_payload`.
-2. Saved Tauri Store runtime config under `supabase.runtime.connection`.
-3. Development-only Vite environment fallback from `.env.local`.
+Runtime config resolution order:
 
-The Rust command in `src-tauri/src/lib.rs` looks for the preferred bootstrap payload under the app config directory at `bootstrap/supabase.json`, then checks a legacy `uru/bootstrap/supabase.json` location.
+1. A one-time bootstrap payload consumed by `window.ops.config.consumeSupabaseBootstrapPayload()`.
+2. Saved Electron settings under `supabase.runtime.connection`.
+3. Development/browser fallback from `.env.local`.
 
-## Run Locally
+The Electron main process looks for the preferred bootstrap payload under the app data directory at `bootstrap/supabase.json`, then checks a legacy `uru/bootstrap/supabase.json` location.
 
-The package defines two development scripts:
+Example payload:
 
-```bash
-pnpm dev:web
-pnpm dev
+```json
+{
+  "url": "https://your-project-ref.supabase.co",
+  "publishableKey": "your-publishable-key",
+  "projectRef": "your-project-ref",
+  "updatedAt": "2026-05-05T00:00:00.000Z",
+  "source": "bootstrap"
+}
 ```
 
-- `pnpm dev:web` starts the renderer only on port `3000`.
-- `pnpm dev` starts the Tauri app and uses the frontend command configured in `src-tauri/tauri.conf.json`.
+The payload is deleted after successful consumption.
 
-## Available Scripts
+## Scripts
 
-| Script | Description |
+| Script | Purpose |
 | --- | --- |
-| `pnpm install` | Install dependencies. |
-| `pnpm dev:web` | Start the renderer development server. |
-| `pnpm dev` | Start the desktop app through Tauri. |
-| `pnpm build` | Build the renderer output used by Tauri packaging. |
-| `pnpm preview` | Preview the built renderer. |
+| `pnpm dev` | Start the Electron desktop app in development mode. |
+| `pnpm dev:web` | Start only the renderer dev server on port `3000`. |
+| `pnpm build` | Build Electron main, preload, and renderer output into `out/`. |
+| `pnpm preview` | Preview the Electron app from built output. |
+| `pnpm dist:mac` | Build and package macOS assets. |
 | `pnpm test` | Run Vitest tests. |
+| `pnpm typecheck` | Run TypeScript without emitting files. |
 | `pnpm lint` | Run ESLint. |
-| `pnpm format` | Run the configured Prettier command. |
-| `pnpm check` | Run `prettier --write .` and `eslint --fix`; this mutates files. |
+| `pnpm check` | Mutates files by running Prettier write and ESLint fix. |
 
-## Tests
+## Local Data Reset
 
-Run the test suite with:
-
-```bash
-pnpm test
-```
-
-The current tests focus on configuration, Supabase client behavior, repository helpers, schema registry coverage, hidden join routes, and CSV utilities.
-
-## Reset Local Runtime Config
-
-If the app keeps using stale Supabase settings, run:
+Use the reset helper when runtime config gets stale:
 
 ```bash
 ./scripts/reset-config.sh
 ```
 
-On macOS, this removes:
+The script removes:
 
-- Tauri Store settings under `~/Library/Application Support/com.polterware.ops/settings.json`.
-- Preferred bootstrap payload under `~/Library/Application Support/com.polterware.ops/bootstrap/supabase.json`.
-- Legacy bootstrap payload under `~/Library/Application Support/uru/bootstrap/supabase.json`.
-- Local development fallback file `.env.local`.
+- Electron settings under `~/Library/Application Support/com.polterware.ops/settings.json`.
+- Bootstrap payloads under `~/Library/Application Support/com.polterware.ops/bootstrap/supabase.json`.
+- Legacy bootstrap payloads under `~/Library/Application Support/uru/bootstrap/supabase.json`.
+- Local `.env.local`.
 
-Restart the renderer or desktop app after resetting.
+Restart the renderer or desktop app after running it.
 
-## Notes
+## Common First Run Flow
 
-- This documentation update did not run install, dev, build, preview, lint, or test commands.
-- The local app expects Supabase Auth, table permissions, RLS policies, and RPC functions to exist in the connected Supabase project.
-- TODO: not identified in the current codebase: the authoritative Supabase migration/reset workflow for recreating the database schema.
+1. Install dependencies.
+2. Start the app.
+3. Complete onboarding with the Supabase URL and publishable key.
+4. Sign in with a Supabase Auth user.
+5. Bootstrap the first admin if the connected project allows `bootstrap_first_admin`.
+6. Open the products, orders, inventory, or analytics workspace.
+
+## Current Unknowns
+
+- TODO: not identified in the current codebase: checked-in Supabase migration/reset workflow.
+- TODO: not identified in the current codebase: production Supabase project promotion process.
+- TODO: not identified in the current codebase: required seed data for a fresh Supabase project.

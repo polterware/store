@@ -30,7 +30,6 @@ export function AdminSignupForm({ onDone, onGoToLogin }: AdminSignupFormProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [adminExists, setAdminExists] = useState(false);
 
@@ -39,7 +38,6 @@ export function AdminSignupForm({ onDone, onGoToLogin }: AdminSignupFormProps) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setInfo(null);
     setAdminExists(false);
 
     if (password !== confirmPassword) {

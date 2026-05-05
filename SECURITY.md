@@ -18,7 +18,7 @@ Report vulnerabilities privately to:
 
 Ops is a desktop application that connects directly to Supabase. The desktop app is not a trusted backend. It must use publishable/default Supabase keys, authenticated user sessions, JWT claims, RLS policies, and RPC permissions to protect business data.
 
-The Rust/Tauri shell is intentionally thin and must not become a privileged business backend.
+The Electron main process is intentionally thin and must not become a privileged business backend.
 
 ## Supabase Credentials
 
@@ -31,9 +31,9 @@ The Rust/Tauri shell is intentionally thin and must not become a privileged busi
 
 Runtime Supabase config can be stored in:
 
-- Tauri Store under `supabase.runtime.connection`.
+- Electron settings under `supabase.runtime.connection`.
 - Browser localStorage under `ops.supabase.runtime.connection` in web-only development.
-- A one-time bootstrap payload consumed and deleted by `consume_supabase_bootstrap_payload`.
+- A one-time bootstrap payload consumed and deleted by `window.ops.config.consumeSupabaseBootstrapPayload()`.
 
 The stored config includes the Supabase URL and publishable key. It should not include passwords, service-role credentials, or private signing material.
 
@@ -53,49 +53,44 @@ RLS policy SQL is not present in this checkout, so those policies must be review
 
 ## Native Auth Fallback
 
-When WebView Auth requests fail due to network errors, the app can call the Tauri command `supabase_sign_in_with_password`. That command sends the user's email and password to the Supabase Auth token endpoint using `reqwest`.
+When WebView Auth requests fail due to network errors, the app can call `window.ops.auth.signInWithPassword(...)`. The Electron main process sends the user's email and password to the Supabase Auth token endpoint.
 
 Review this flow carefully when changing auth behavior:
 
 - Do not log passwords or token responses.
 - Keep error messages useful without exposing credentials.
-- Keep the native command scoped to Supabase Auth sign-in only.
+- Keep the native handler scoped to Supabase Auth sign-in only.
 
-## Tauri Permissions
+## Electron Bridge and Permissions
 
-Current Tauri capabilities include:
+The preload exposes only `window.ops` through `contextBridge`. Renderer code must not import `electron`, `ipcRenderer`, Node APIs, or main-process modules directly.
 
-- `core:default`
-- `store:default`
-- `core:window:default`
-- `core:window:allow-start-dragging`
-- `updater:default`
-- `process:default`
+The main window is configured with:
 
-Review `src-tauri/capabilities/default.json` before adding new native APIs. Do not add file-system, shell, SQL, or broad process permissions unless the product requirement is explicit and the risk is reviewed.
+- `contextIsolation: true`
+- `nodeIntegration: false`
+- `sandbox: true`
+- `webSecurity: true`
+
+Native permission requests are denied by default. Unexpected navigation, new windows, and webview attachment are blocked by the main process.
 
 ## Content Security Policy
 
-`src-tauri/tauri.conf.json` currently sets:
+`index.html` defines a renderer CSP that allows the app shell, Supabase network access, local development server access, fonts, images, and inline styles required by the current UI stack.
 
-```json
-{
-  "security": {
-    "csp": null
-  }
-}
-```
-
-Before public release, review whether a stricter CSP can be applied without breaking the renderer, Supabase requests, images, charts, or Tauri integration.
+Review the CSP before adding new third-party domains, asset hosts, or runtime script behavior.
 
 ## Updates and Release Signing
 
-The Tauri updater uses signed `.app.tar.gz` artifacts and a public key in `src-tauri/tauri.conf.json`. Keep updater signing private keys only in GitHub Actions secrets:
+Auto-update uses `electron-updater` with GitHub Releases published by `electron-builder`. Keep signing and release credentials only in GitHub Actions secrets:
 
-- `TAURI_SIGNING_PRIVATE_KEY`
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
+- `CSC_LINK`
+- `CSC_KEY_PASSWORD`
+- `APPLE_ID`
+- `APPLE_APP_SPECIFIC_PASSWORD`
+- `APPLE_TEAM_ID`
 
-Do not commit signing keys, generated private key files, or release credentials.
+Do not commit signing keys, certificates, passwords, generated private key files, or release credentials.
 
 ## Local Data Reset
 

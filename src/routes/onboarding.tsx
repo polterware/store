@@ -50,7 +50,7 @@ function OnboardingPage() {
   return (
     <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
       <div
-        data-tauri-drag-region
+        data-electron-drag-region
         className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
       />
 

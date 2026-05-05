@@ -1,152 +1,130 @@
 # Troubleshooting
 
-This guide covers issues that are visible in the current codebase: runtime Supabase configuration, local desktop state, Supabase Auth/RPC calls, Tauri dependencies, and updater artifacts.
+This guide covers issues that are visible in the current codebase: runtime Supabase configuration, local desktop state, Supabase Auth/RPC calls, Electron dependencies, and updater artifacts.
 
-## Supabase Connection Required
+## Supabase Is Not Configured
 
 Symptoms:
 
-- The app shows "Supabase connection required".
-- `/` redirects to `/onboarding`.
-- Login and data routes are unavailable.
+- Onboarding appears instead of the workspace.
+- Login redirects back to onboarding.
+- Error text mentions missing Supabase URL or publishable key.
 
 Checks:
 
-- Complete `/onboarding` with a Supabase URL and publishable key.
-- In source checkout development, confirm `.env.local` contains `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`.
-- Confirm the values are publishable/default client values, not service-role secrets.
-- Confirm the URL does not include an extra trailing path.
+1. Confirm the runtime connection was saved in onboarding.
+2. Confirm `.env.local` exists if you are using browser-only development fallback.
+3. Confirm the app is not reading stale desktop settings.
 
-## Stale Runtime Config
-
-Symptoms:
-
-- The app keeps connecting to an old Supabase project.
-- Changing `.env.local` does not affect the desktop app.
-- Login still targets a previous project after reinstalling.
-
-Cause:
-
-- Runtime config persisted by Tauri Store has priority over development fallback environment variables.
-- Tauri application data can survive app reinstall/uninstall.
-
-Fix on macOS:
+Reset local config:
 
 ```bash
 ./scripts/reset-config.sh
 ```
 
-The script removes Tauri Store settings, bootstrap payloads, and `.env.local`. Restart the renderer or desktop app after running it.
+Restart the renderer or desktop app after running the script.
 
-## Bootstrap Payload Was Not Imported
+## Runtime Config Does Not Change
+
+Runtime config persisted by Electron settings has priority over development fallback environment variables. App data can survive app reinstall/uninstall.
+
+Reset paths used by the current app:
+
+- `~/Library/Application Support/com.polterware.ops/settings.json`
+- `~/Library/Application Support/com.polterware.ops/bootstrap/supabase.json`
+- `~/Library/Application Support/uru/bootstrap/supabase.json`
+- `.env.local`
+
+Use `./scripts/reset-config.sh` rather than deleting random files manually.
+
+## Bootstrap Payload Is Ignored
+
+Checks:
+
+- The preferred payload path is under the app data directory at `bootstrap/supabase.json`.
+- The legacy payload path is under `~/Library/Application Support/uru/bootstrap/supabase.json`.
+- The payload must be valid JSON with `url` and `publishableKey`.
+- The payload is one-time. It is deleted after successful consumption.
+
+## Supabase Auth Fails
 
 Symptoms:
 
-- The app still asks for connection setup even though a bootstrap payload was created.
-- Runtime source does not show "Imported bootstrap payload" in Settings.
+- Login form returns a Supabase error.
+- Error text mentions network failure or endpoint reachability.
 
 Checks:
 
-- The preferred payload path is under the Tauri app config directory at `bootstrap/supabase.json`.
-- The legacy macOS path is `~/Library/Application Support/uru/bootstrap/supabase.json`.
-- The payload must be valid JSON with URL and publishable key fields matching the Rust `SupabaseBootstrapPayload` shape.
-- The command consumes and deletes the payload after a successful read.
+1. Confirm the Supabase URL is reachable from the machine.
+2. Confirm the publishable key belongs to the configured project.
+3. Confirm the user exists in Supabase Auth.
+4. Confirm RLS and role data allow the app routes to load.
 
-## Unable To Sign In
+In Electron, the app retries network failures and then uses `window.ops.auth.signInWithPassword(...)` as a native fallback. This fallback still calls Supabase Auth directly and does not bypass Supabase authorization.
 
-Symptoms:
+## Tables or Forms Fail to Load
 
-- Supabase Auth returns an error.
-- The app reports that it cannot reach the Auth endpoint.
-- Desktop sign-in behaves differently from browser-only development.
+Likely causes:
 
-Checks:
+- The Supabase schema does not match `src/types/database.ts`.
+- A table listed in `src/lib/schema-registry.ts` is missing.
+- A relation field points to missing data.
+- RLS denies the authenticated user.
 
-- Confirm the configured project URL and publishable key are valid.
-- Confirm the Supabase project Auth settings allow the user to sign in.
-- Confirm network, firewall, or VPN settings are not blocking the Supabase Auth endpoint.
-- In Tauri, the app retries network failures and then uses the native `supabase_sign_in_with_password` command as a fallback.
+Useful source files:
 
-## First Admin Creation Fails
+- `src/types/database.ts`
+- `src/lib/schema-registry.ts`
+- `src/lib/db/repositories/table-crud-repository.ts`
+- `src/lib/db/repositories/console-read-repository.ts`
 
-Symptoms:
+## RPC Calls Fail
 
-- The onboarding admin form fails after sign-up.
-- The app reports that an administrator already exists.
+The app expects RPCs for read models, join editors, analytics, order status changes, inventory reserve/release, and first-admin bootstrap.
 
-Checks:
+Useful source files:
 
-- The connected Supabase project must expose the `bootstrap_first_admin` RPC.
-- The RPC is expected to assign the first admin and confirm email according to the app flow.
-- If the RPC returns false, the UI treats the project as already having an administrator.
+- `src/lib/db/repositories/console-joins-repository.ts`
+- `src/lib/db/repositories/orders-repository.ts`
+- `src/lib/db/repositories/inventory-levels-repository.ts`
+- `src/lib/db/repositories/analytics/`
+- `docs/api.md`
 
-## Table Console Fails To Load
+If an RPC is intentionally optional, the code usually has a documented fallback. If it is critical, the connected Supabase project must provide it.
 
-Symptoms:
-
-- `/tables/$table` shows an error.
-- Some tables load while enriched views fail.
-
-Checks:
-
-- Confirm the authenticated user has RLS access to the requested table.
-- Confirm the table exists in the Supabase project and matches `src/types/database.ts`.
-- For profiles, customers, orders, transactions, and shipments, the console first tries read-model RPCs such as `console_profiles_list`.
-- If a read-model RPC is missing with `PGRST202`, `42883`, or a "could not find the function" message, `ConsoleReadRepository` falls back to direct table listing.
-- Join editors require their detail/sync RPCs. Missing join RPCs do not have the same generic fallback.
-
-## Analytics Shows Partial Data
-
-Symptoms:
-
-- The analytics dashboard loads but one domain shows "Partial data".
-- Some charts are empty while other cards work.
-
-Cause:
-
-- `AnalyticsDashboardRepository` loads domains with `Promise.allSettled`. One failing RPC does not block the entire dashboard.
+## Electron Development Does Not Start
 
 Checks:
 
-- Confirm the relevant analytics RPC exists.
-- Confirm the authenticated role can execute the RPC.
-- Confirm the RPC accepts the expected date and timezone parameters.
+- Confirm dependencies are installed with `pnpm install`.
+- Confirm Node.js 22 or newer is active.
+- Confirm Electron dependencies were allowed to install correctly.
+- Check `electron.vite.config.ts` for main, preload, and renderer entrypoints.
+- Check `index.html` for the renderer root.
 
-## Tauri Development Does Not Start
+This guide does not assume a production server. The app is a desktop client backed by Supabase.
 
-Checks:
-
-- Confirm Rust is installed.
-- Confirm Tauri system dependencies are installed for your OS.
-- Confirm Node dependencies are installed with `pnpm install`.
-- Use `pnpm dev:web` to isolate renderer problems from native shell problems.
-- Check `src-tauri/tauri.conf.json` for the configured dev URL and frontend command.
-
-## Update Check Fails
-
-Symptoms:
-
-- Settings shows an updater error.
-- The app never reports an available update.
+## Update Checks Fail
 
 Checks:
 
-- The updater endpoint must serve `latest.json` from GitHub Releases.
-- Release assets must include platform-specific `.app.tar.gz` files and `.sig` signatures.
-- The manifest signatures must match the updater public key in `src-tauri/tauri.conf.json`.
-- Update checks are skipped in development mode by the root layout.
+- Update checks require a packaged desktop app.
+- GitHub Releases must contain macOS assets generated by `electron-builder`.
+- `latest-mac.yml` must be uploaded by the release workflow.
+- The app must be signed for reliable macOS update installation.
+- The workflow must have `CSC_LINK` and `CSC_KEY_PASSWORD` configured.
 
-## Tests or Lint Fail
+## Browser Translation Breaks UI
 
-Relevant commands:
+The app protects the DOM from browser translation tools through:
 
-```bash
-pnpm test
-pnpm lint
-```
+- `meta name="google" content="notranslate"` in `index.html`.
+- `translate="no"` on the root HTML and body.
 
-Notes:
+If translation extensions still mutate the DOM, reproduce with extensions disabled before changing app code.
 
-- `pnpm test` runs Vitest.
-- `pnpm lint` runs ESLint.
-- `pnpm check` mutates files because it runs `prettier --write .` and `eslint --fix`.
+## Current Unknowns
+
+- TODO: not identified in the current codebase: complete Supabase migration/reset command.
+- TODO: not identified in the current codebase: production support contact path.
+- TODO: not identified in the current codebase: signed release validation checklist.

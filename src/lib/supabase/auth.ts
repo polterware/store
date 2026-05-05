@@ -1,6 +1,6 @@
-import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { Session, User } from "@supabase/supabase-js";
 import type { AppRole } from "@/types/domain";
+import { getOpsBridge } from "@/lib/desktop/ops-bridge";
 import { getSupabaseClient, getSupabaseConfig } from "@/lib/supabase/client";
 import { handleSupabaseError } from "@/lib/supabase/errors";
 
@@ -36,24 +36,21 @@ async function retryOnceOnNetworkError<T>(
   }
 }
 
-type NativeSignInResponse = {
-  access_token: string;
-  refresh_token: string;
-};
+async function signInWithPasswordViaDesktop(email: string, password: string) {
+  const bridge = getOpsBridge();
+  if (!bridge) {
+    throw new Error("Desktop auth bridge is not available");
+  }
 
-async function signInWithPasswordViaTauri(email: string, password: string) {
   const supabase = getSupabaseClient();
   const { url, publishableDefaultKey } = getSupabaseConfig();
 
-  const tokenData = await invoke<NativeSignInResponse>(
-    "supabase_sign_in_with_password",
-    {
-      supabaseUrl: url,
-      publishableKey: publishableDefaultKey,
-      email,
-      password,
-    },
-  );
+  const tokenData = await bridge.auth.signInWithPassword({
+    supabaseUrl: url,
+    publishableKey: publishableDefaultKey,
+    email,
+    password,
+  });
 
   if (!tokenData.access_token || !tokenData.refresh_token) {
     throw new Error("Native auth did not return a valid session token pair");
@@ -101,9 +98,9 @@ export async function signInWithPassword(email: string, password: string) {
     return data;
   } catch (error) {
     if (isNetworkRequestError(error)) {
-      if (isTauri()) {
+      if (getOpsBridge()) {
         try {
-          return await signInWithPasswordViaTauri(email, password);
+          return await signInWithPasswordViaDesktop(email, password);
         } catch (nativeFallbackError) {
           if (nativeFallbackError instanceof Error) {
             throw new Error(
@@ -181,7 +178,6 @@ export async function signUpWithPassword(
 
 export async function bootstrapFirstAdmin(email: string): Promise<boolean> {
   const supabase = getSupabaseClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC type not fully resolved by supabase-js generics
   const { data, error } = await (supabase.rpc as any)("bootstrap_first_admin", {
     p_user_email: email,
   });

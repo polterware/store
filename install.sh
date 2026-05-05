@@ -146,13 +146,12 @@ fetch_release() {
 # ── Artifact selection ────────────────────────────────────────
 #
 # Artifact selection rules:
-#   - Supported formats: .app.tar.gz or .zip
-#   - Must contain a macOS hint: macos, darwin, universal, .app.tar.gz, or .app.zip
+#   - Supported format: .zip
+#   - Must contain a macOS hint or match the Electron builder ops-<version>-<arch>.zip shape
 #   - Architecture matching:
 #       arm64  -> arm64 | aarch64
 #       x86_64 -> x64   | x86_64 | amd64
 #   - Universal builds match any architecture
-#   - Prefer .app.tar.gz over .zip
 # ──────────────────────────────────────────────────────────────
 
 select_artifact() {
@@ -170,7 +169,7 @@ select_artifact() {
 
   local best_name=""
   local best_url=""
-  local best_score=0  # 2 = .app.tar.gz, 1 = .zip
+  local best_score=0
 
   while IFS=' ' read -r name url; do
     [[ -z "$name" ]] && continue
@@ -179,12 +178,9 @@ select_artifact() {
     lower="$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')"
 
     # Must be a supported format
-    local is_app_tar=false
     local is_zip=false
 
-    if [[ "$lower" == *.app.tar.gz ]]; then
-      is_app_tar=true
-    elif [[ "$lower" == *.zip ]]; then
+    if [[ "$lower" == *.zip ]]; then
       is_zip=true
     else
       continue
@@ -195,10 +191,10 @@ select_artifact() {
     case "$lower" in
       *macos*|*darwin*|*universal*) has_mac_hint=true ;;
     esac
-    if [[ "$is_app_tar" == true && "$lower" == *.app.tar.gz ]]; then
+    if [[ "$is_zip" == true && "$lower" == *.app.zip ]]; then
       has_mac_hint=true
     fi
-    if [[ "$is_zip" == true && "$lower" == *.app.zip ]]; then
+    if [[ "$is_zip" == true && "$lower" == ops-* ]]; then
       has_mac_hint=true
     fi
     [[ "$has_mac_hint" == false ]] && continue
@@ -229,13 +225,7 @@ select_artifact() {
     fi
     [[ "$arch_match" == false ]] && continue
 
-    # Score: prefer .app.tar.gz (2) over .zip (1)
-    local score=0
-    if [[ "$is_app_tar" == true ]]; then
-      score=2
-    else
-      score=1
-    fi
+    local score=1
 
     if (( score > best_score )); then
       best_score=$score
@@ -275,9 +265,7 @@ download_and_install() {
   local lower
   lower="$(printf '%s' "$ARTIFACT_NAME" | tr '[:upper:]' '[:lower:]')"
 
-  if [[ "$lower" == *.app.tar.gz ]]; then
-    tar -xzf "$artifact_path" -C "$TMP_DIR" || error "Failed to extract .app.tar.gz archive."
-  elif [[ "$lower" == *.zip ]]; then
+  if [[ "$lower" == *.zip ]]; then
     unzip -qo "$artifact_path" -d "$TMP_DIR" || error "Failed to extract .zip archive."
   fi
 

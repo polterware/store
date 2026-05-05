@@ -5,33 +5,13 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version override (ex: 0.1.0)"
-        required: false
-        type: string
 
 permissions:
   contents: write
 
 jobs:
   release:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-14
-            target: aarch64-apple-darwin
-            asset_arch: aarch64
-          - runner: macos-13
-            target: x86_64-apple-darwin
-            asset_arch: x64
-
-    runs-on: ${{ matrix.runner }}
-
-    outputs:
-      release_version: ${{ steps.metadata.outputs.release_version }}
-      release_tag: ${{ steps.metadata.outputs.release_tag }}
+    runs-on: macos-14
 
     steps:
       - name: Check out repository
@@ -45,14 +25,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-
-      - name: Set up Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
       - name: Resolve release metadata
         id: metadata
@@ -60,15 +35,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && -n "${{ inputs.version }}" ]]; then
-            RELEASE_VERSION="${{ inputs.version }}"
-          elif [[ "${GITHUB_REF_TYPE:-}" == "tag" && -n "${GITHUB_REF_NAME:-}" ]]; then
-            RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          else
-            RELEASE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('src-tauri/tauri.conf.json', 'utf8')).version")"
-          fi
-
-          RELEASE_VERSION="${RELEASE_VERSION#v}"
+          RELEASE_VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
           if [[ -z "$RELEASE_VERSION" ]]; then
             echo "Could not determine release version." >&2
             exit 1
@@ -79,114 +46,32 @@ jobs:
           echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
           echo "release_tag=v$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Ensure GitHub release exists
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --target "$GITHUB_SHA" \
+              --title "Ops $RELEASE_VERSION" \
+              --notes "Automated macOS release for $RELEASE_VERSION."
+          fi
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build macOS bundles
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: pnpm exec tauri build --target ${{ matrix.target }} --bundles app,updater
+      - name: Build Electron bundles
+        run: pnpm exec electron-vite build
 
-      - name: Prepare release assets
-        id: assets
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          bundle_root="src-tauri/target/${{ matrix.target }}/release/bundle"
-          app_bundle="$(find "$bundle_root/macos" -name '*.app' -type d -print -quit)"
-
-          if [[ -z "$app_bundle" ]]; then
-            echo "Unable to find .app bundle under $bundle_root/macos" >&2
-            exit 1
-          fi
-
-          output_dir="$RUNNER_TEMP/release-assets"
-          mkdir -p "$output_dir"
-
-          # Standard zip for direct download
-          app_output="$output_dir/ops-macos-${{ matrix.asset_arch }}.zip"
-          ditto -c -k --sequesterRsrc --keepParent "$app_bundle" "$app_output"
-
-          # Updater artifacts (.app.tar.gz + .sig)
-          updater_tar="$(find "$bundle_root/macos" -name '*.app.tar.gz' -type f -print -quit)"
-          updater_sig="$(find "$bundle_root/macos" -name '*.app.tar.gz.sig' -type f -print -quit)"
-
-          if [[ -n "$updater_tar" ]]; then
-            cp "$updater_tar" "$output_dir/ops-macos-${{ matrix.asset_arch }}.app.tar.gz"
-          fi
-          if [[ -n "$updater_sig" ]]; then
-            cp "$updater_sig" "$output_dir/ops-macos-${{ matrix.asset_arch }}.app.tar.gz.sig"
-          fi
-
-          echo "output_dir=$output_dir" >> "$GITHUB_OUTPUT"
-
-      - name: Ensure GitHub release exists
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if ! GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release create "$RELEASE_TAG" \
-              --target "$GITHUB_SHA" \
-              --title "Ops $RELEASE_VERSION" \
-              --notes "Automated macOS release for $RELEASE_VERSION." \
-              || GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release view "$RELEASE_TAG" >/dev/null 2>&1
-          fi
-
-      - name: Upload release assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release upload "$RELEASE_TAG" "${{ steps.assets.outputs.output_dir }}"/* --clobber
-
-  manifest:
-    needs: release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download signature files from release
-        shell: bash
+      - name: Build and publish macOS assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          TAG="${{ needs.release.outputs.release_tag }}"
-          VERSION="${{ needs.release.outputs.release_version }}"
-
-          mkdir -p sigs
-          gh release download "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern "*.app.tar.gz.sig" \
-            --dir sigs
-
-          SIG_AARCH64="$(cat sigs/ops-macos-aarch64.app.tar.gz.sig)"
-          SIG_X64="$(cat sigs/ops-macos-x64.app.tar.gz.sig)"
-
-          cat > latest.json <<EOF
-          {
-            "version": "$VERSION",
-            "notes": "Release v$VERSION",
-            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "platforms": {
-              "darwin-aarch64": {
-                "url": "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/ops-macos-aarch64.app.tar.gz",
-                "signature": "$SIG_AARCH64"
-              },
-              "darwin-x86_64": {
-                "url": "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/ops-macos-x64.app.tar.gz",
-                "signature": "$SIG_X64"
-              }
-            }
-          }
-          EOF
-
-      - name: Upload manifest to release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh release upload "${{ needs.release.outputs.release_tag }}" latest.json --repo "$GITHUB_REPOSITORY" --clobber
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: pnpm exec electron-builder --mac --x64 --arm64 --publish always

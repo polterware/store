@@ -1,6 +1,6 @@
 # Database
 
-Ops uses Supabase as its external business data layer. The desktop app does not include a local business database, ORM, SQLite integration, `sqlx`, or Tauri SQL plugin.
+Ops uses Supabase as its external business data layer. The desktop app does not include a local business database, ORM, SQLite integration, `sqlx`, or local SQL plugin.
 
 ## Source of Truth
 

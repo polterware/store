@@ -1,4 +1,6 @@
-import { Store } from "@tauri-apps/plugin-store";
+import { getOpsBridge } from "@/lib/desktop/ops-bridge";
+
+const BROWSER_SETTINGS_KEY = "ops.local.settings";
 
 export type LocalSettingValue =
   | string
@@ -8,59 +10,99 @@ export type LocalSettingValue =
   | { [key: string]: LocalSettingValue }
   | Array<LocalSettingValue>;
 
-let storeInstance: Store | null = null;
-
-async function getStore(): Promise<Store> {
-  if (!storeInstance) {
-    storeInstance = await Store.load("settings.json", {
-      autoSave: true,
-      defaults: {},
-    });
+function readBrowserSettings(): Record<string, LocalSettingValue> {
+  if (typeof window === "undefined") {
+    return {};
   }
-  return storeInstance;
+
+  const rawValue = window.localStorage.getItem(BROWSER_SETTINGS_KEY);
+  if (!rawValue) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, LocalSettingValue>;
+    }
+  } catch {
+    return {};
+  }
+
+  return {};
+}
+
+function writeBrowserSettings(settings: Record<string, LocalSettingValue>): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(BROWSER_SETTINGS_KEY, JSON.stringify(settings));
 }
 
 export const SettingsStore = {
   async get<T = LocalSettingValue>(key: string): Promise<T | null> {
-    const store = await getStore();
-    const value = await store.get<T>(key);
-    return value ?? null;
+    const bridge = getOpsBridge();
+    if (bridge) {
+      return bridge.settings.get<T>(key);
+    }
+
+    const settings = readBrowserSettings();
+    return (settings[key] as T | undefined) ?? null;
   },
 
   async set<T = LocalSettingValue>(key: string, value: T): Promise<void> {
-    const store = await getStore();
-    await store.set(key, value);
-    await store.save();
+    const bridge = getOpsBridge();
+    if (bridge) {
+      await bridge.settings.set(key, value);
+      return;
+    }
+
+    const settings = readBrowserSettings();
+    settings[key] = value as LocalSettingValue;
+    writeBrowserSettings(settings);
   },
 
   async delete(key: string): Promise<void> {
-    const store = await getStore();
-    await store.delete(key);
-    await store.save();
+    const bridge = getOpsBridge();
+    if (bridge) {
+      await bridge.settings.delete(key);
+      return;
+    }
+
+    const settings = readBrowserSettings();
+    delete settings[key];
+    writeBrowserSettings(settings);
   },
 
   async getAll<T = LocalSettingValue>(): Promise<Record<string, T>> {
-    const store = await getStore();
-    const entries = await store.entries<T>();
-    const settings: Record<string, T> = {};
-
-    for (const [key, value] of entries) {
-      if (value !== null && value !== undefined) {
-        settings[key] = value;
-      }
+    const bridge = getOpsBridge();
+    if (bridge) {
+      return bridge.settings.getAll<T>();
     }
 
-    return settings;
+    return readBrowserSettings() as Record<string, T>;
   },
 
   async clear(): Promise<void> {
-    const store = await getStore();
-    await store.clear();
-    await store.save();
+    const bridge = getOpsBridge();
+    if (bridge) {
+      await bridge.settings.clear();
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(BROWSER_SETTINGS_KEY);
+    }
   },
 
   async has(key: string): Promise<boolean> {
-    const store = await getStore();
-    return store.has(key);
+    const bridge = getOpsBridge();
+    if (bridge) {
+      return bridge.settings.has(key);
+    }
+
+    const settings = readBrowserSettings();
+    return Object.prototype.hasOwnProperty.call(settings, key);
   },
 };

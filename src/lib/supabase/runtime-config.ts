@@ -1,4 +1,4 @@
-import { invoke, isTauri } from "@tauri-apps/api/core";
+import { getOpsBridge, isOpsDesktop } from "@/lib/desktop/ops-bridge";
 import { SettingsStore } from "@/lib/stores/settings-store";
 
 const RUNTIME_CONFIG_KEY = "supabase.runtime.connection";
@@ -53,7 +53,7 @@ function normalizeConfig(
 }
 
 function getEnvFallbackConfig(): RuntimeSupabaseConfig | null {
-  if (isTauri() && !import.meta.env.DEV) {
+  if (isOpsDesktop() && !import.meta.env.DEV) {
     return null;
   }
 
@@ -89,12 +89,14 @@ function emitConfigChanged(config: RuntimeSupabaseConfig | null): void {
 }
 
 async function readPersistedRuntimeConfig(): Promise<RuntimeSupabaseConfig | null> {
-  if (isTauri()) {
-    const value = await SettingsStore.get<RuntimeSupabaseConfig>(RUNTIME_CONFIG_KEY);
-    return value ? normalizeConfig(value, value.source ?? "saved") : null;
+  const value = await SettingsStore.get<RuntimeSupabaseConfig | BootstrapSupabaseConfigPayload>(
+    RUNTIME_CONFIG_KEY,
+  );
+  if (value) {
+    return normalizeConfig(value, normalizeSource(value.source, "saved"));
   }
 
-  if (typeof window === "undefined") {
+  if (isOpsDesktop() || typeof window === "undefined") {
     return null;
   }
 
@@ -105,7 +107,10 @@ async function readPersistedRuntimeConfig(): Promise<RuntimeSupabaseConfig | nul
 
   try {
     const parsed = JSON.parse(rawValue) as BootstrapSupabaseConfigPayload;
-    return normalizeConfig(parsed, parsed.source === "bootstrap" ? "bootstrap" : "saved");
+    return normalizeConfig(
+      parsed,
+      parsed.source === "bootstrap" ? "bootstrap" : "saved",
+    );
   } catch {
     return null;
   }
@@ -114,24 +119,20 @@ async function readPersistedRuntimeConfig(): Promise<RuntimeSupabaseConfig | nul
 async function persistRuntimeConfig(
   config: RuntimeSupabaseConfig,
 ): Promise<void> {
-  if (isTauri()) {
-    await SettingsStore.set(RUNTIME_CONFIG_KEY, config);
-    return;
-  }
+  await SettingsStore.set(RUNTIME_CONFIG_KEY, config);
 
-  if (typeof window !== "undefined") {
+  if (!isOpsDesktop() && typeof window !== "undefined") {
     window.localStorage.setItem(BROWSER_CONFIG_KEY, JSON.stringify(config));
   }
 }
 
 export async function consumeBootstrapSupabaseConfig(): Promise<RuntimeSupabaseConfig | null> {
-  if (!isTauri()) {
+  const bridge = getOpsBridge();
+  if (!bridge) {
     return null;
   }
 
-  const payload = await invoke<BootstrapSupabaseConfigPayload | null>(
-    "consume_supabase_bootstrap_payload",
-  );
+  const payload = await bridge.config.consumeSupabaseBootstrapPayload();
 
   if (!payload) {
     return null;
@@ -151,7 +152,10 @@ export async function refreshResolvedSupabaseConfig(): Promise<RuntimeSupabaseCo
     });
   }
 
-  await bootstrapSyncPromise;
+  const bootstrapped = await bootstrapSyncPromise;
+  if (bootstrapped) {
+    return bootstrapped;
+  }
 
   const persisted = await readPersistedRuntimeConfig();
   if (persisted) {
@@ -185,9 +189,9 @@ export async function saveRuntimeSupabaseConfig(
 }
 
 export async function clearRuntimeSupabaseConfig(): Promise<void> {
-  if (isTauri()) {
-    await SettingsStore.delete(RUNTIME_CONFIG_KEY);
-  } else if (typeof window !== "undefined") {
+  await SettingsStore.delete(RUNTIME_CONFIG_KEY);
+
+  if (typeof window !== "undefined") {
     window.localStorage.removeItem(BROWSER_CONFIG_KEY);
   }
 

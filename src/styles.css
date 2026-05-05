@@ -162,6 +162,18 @@
   body {
     @apply bg-background text-foreground h-full overflow-hidden font-sans;
   }
+
+  [data-electron-drag-region] {
+    -webkit-app-region: drag;
+  }
+
+  button,
+  input,
+  textarea,
+  select,
+  a {
+    -webkit-app-region: no-drag;
+  }
 }
 
 /* Custom scrollbar styles */

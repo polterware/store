@@ -1,6 +1,6 @@
 # API and Internal Contracts
 
-Ops does not expose a first-party HTTP API server in this repository. Its runtime contracts are Supabase Auth calls, Supabase table/RPC calls, and Tauri commands consumed by the renderer.
+Ops does not expose a first-party HTTP API server in this repository. Its runtime contracts are Supabase Auth calls, Supabase table/RPC calls, and the Electron preload bridge consumed by the renderer.
 
 ## Supabase Client
 
@@ -22,13 +22,13 @@ When the runtime connection changes, callers reset the cached client with `reset
 | --- | --- |
 | `getSession()` | `supabase.auth.getSession()` |
 | `getUser()` | Reads the current user from the session. |
-| `signInWithPassword()` | `supabase.auth.signInWithPassword()` with retry and Tauri native fallback. |
+| `signInWithPassword()` | `supabase.auth.signInWithPassword()` with retry and Electron native fallback. |
 | `signOut()` | `supabase.auth.signOut()` |
 | `getUserRoles(userId)` | `from("user_roles").select("roles(code)")` filtered by user and active rows. |
 | `signUpWithPassword()` | `supabase.auth.signUp()` with `full_name` metadata. |
 | `bootstrapFirstAdmin(email)` | RPC `bootstrap_first_admin` with `p_user_email`. |
 
-The Tauri fallback for sign-in calls the native command `supabase_sign_in_with_password`, then sets the returned token pair into the Supabase client session.
+The Electron fallback for sign-in calls `window.ops.auth.signInWithPassword(...)`, then sets the returned token pair into the Supabase client session.
 
 ## Generic Table Repository
 
@@ -119,43 +119,74 @@ Date-scoped analytics RPCs receive combinations of:
 
 `src/lib/analytics/analytics-range.ts` currently supports `7d`, `30d`, `90d`, and `all`, with default timezone `America/Sao_Paulo`.
 
-## Tauri Commands
+## Electron Bridge
 
-The Rust shell exposes two commands in `src-tauri/src/lib.rs`.
+The preload bridge is defined by `electron/shared/ops-api.ts` and exposed as `window.ops`.
 
-### `supabase_sign_in_with_password`
-
-Used as a native fallback when WebView Auth requests fail.
-
-Input:
+### App
 
 ```ts
-{
-  supabaseUrl: string
-  publishableKey: string
-  email: string
-  password: string
-}
+window.ops.app.getVersion(): Promise<string>
 ```
 
-Behavior:
+Returns the current desktop app version from Electron.
+
+### Auth
+
+```ts
+window.ops.auth.signInWithPassword({
+  supabaseUrl,
+  publishableKey,
+  email,
+  password,
+})
+```
+
+Used as a native fallback when WebView Auth requests fail. The main process:
 
 - POSTs to `{supabaseUrl}/auth/v1/token?grant_type=password`.
 - Sends `apikey` and `Authorization` headers with the publishable key.
 - Returns the Supabase Auth JSON response.
-- Converts request, response, HTTP, and JSON errors into string error codes.
+- Converts request, response, HTTP, and JSON errors into string errors.
 
-### `consume_supabase_bootstrap_payload`
+### Runtime Config
+
+```ts
+window.ops.config.consumeSupabaseBootstrapPayload()
+```
 
 Used to import a one-time Supabase runtime config payload.
 
 Behavior:
 
-- Looks for `bootstrap/supabase.json` in the app config directory.
+- Looks for `bootstrap/supabase.json` in the app data directory.
 - Falls back to a legacy `uru/bootstrap/supabase.json` path.
 - Parses URL, publishable key, optional project ref, optional timestamp, and optional source.
 - Deletes the payload after reading it.
 - Returns the parsed payload or `null`.
+
+### Settings
+
+`window.ops.settings` provides JSON key-value methods:
+
+- `get(key)`
+- `set(key, value)`
+- `delete(key)`
+- `getAll()`
+- `clear()`
+- `has(key)`
+
+These methods persist local desktop settings in `settings.json` under the app data directory. They must not store business data.
+
+### Updater
+
+`window.ops.updater` provides:
+
+- `check()`
+- `downloadAndInstall()`
+- `onStatus(listener)`
+
+The renderer wrapper in `src/lib/updater.ts` converts native updater events into serializable UI states.
 
 ## Error Handling
 

@@ -1,16 +1,14 @@
 import {
-  HeadContent,
   Link,
   Outlet,
-  Scripts,
   createRootRoute,
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Toaster, toast } from "sonner";
 
-import appCss from "../styles.css?url";
 import { AppSidebar } from "@/components/app/app-sidebar";
 import { BrandLockup } from "@/components/app/brand-lockup";
 import { Button } from "@/components/ui/button";
@@ -30,37 +28,6 @@ import {
 import { checkForAppUpdate } from "@/lib/updater";
 
 export const Route = createRootRoute({
-  ssr: false,
-  head: () => ({
-    meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        name: "google",
-        content: "notranslate",
-      },
-      {
-        title: "OPS",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      {
-        rel: "icon",
-        type: "image/png",
-        href: "/ops-logo.png",
-      },
-    ],
-  }),
-  shellComponent: RootDocument,
   component: RootLayout,
 });
 
@@ -146,7 +113,7 @@ function RootLayout() {
         });
       }
     });
-  }, [isAuthenticated, config?.url]);
+  }, [isAuthenticated, config?.url, navigate]);
 
   const isLoginPage = location.pathname === "/login";
   const isOnboardingPage = location.pathname === "/onboarding";
@@ -173,11 +140,13 @@ function RootLayout() {
     return "OPS";
   }, [location.pathname]);
 
+  let content: ReactNode;
+
   if (configLoading) {
-    return (
+    content = (
       <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
         <div
-          data-tauri-drag-region
+          data-electron-drag-region
           className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
         />
 
@@ -196,17 +165,13 @@ function RootLayout() {
         </main>
       </div>
     );
-  }
-
-  if (isOnboardingPage) {
-    return <Outlet />;
-  }
-
-  if (isLoginPage) {
-    return (
+  } else if (isOnboardingPage) {
+    content = <Outlet />;
+  } else if (isLoginPage) {
+    content = (
       <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
         <div
-          data-tauri-drag-region
+          data-electron-drag-region
           className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
         />
 
@@ -215,13 +180,11 @@ function RootLayout() {
         </main>
       </div>
     );
-  }
-
-  if (!config) {
-    return (
+  } else if (!config) {
+    content = (
       <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
         <div
-          data-tauri-drag-region
+          data-electron-drag-region
           className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
         />
 
@@ -245,73 +208,65 @@ function RootLayout() {
         </main>
       </div>
     );
+  } else {
+    content = (
+      <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
+        <div
+          data-electron-drag-region
+          className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
+        />
+
+        <SidebarProvider defaultOpen className="flex-1 overflow-hidden">
+          <AppSidebar pathname={location.pathname} />
+
+          <SidebarInset>
+            <header className="border-border bg-background/95 shrink-0 border-b backdrop-blur">
+              <div className="flex w-full items-center justify-between gap-4 px-4 py-2 md:px-6">
+                <div className="flex min-w-0 items-center gap-2">
+                  <SidebarTrigger className="shrink-0" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{pageTitle}</p>
+                    <p className="text-primary/70 hidden text-xs sm:block">
+                      Schema-driven data console
+                    </p>
+                  </div>
+                </div>
+
+                {isAuthenticated ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      await signOut();
+                      await navigate({ to: "/login" });
+                    }}
+                  >
+                    Sign out
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/login">Sign in</Link>
+                  </Button>
+                )}
+              </div>
+            </header>
+
+            <main className="flex-1 overflow-auto">
+              <div className="mx-auto w-full max-w-7xl p-6">
+                <Outlet />
+              </div>
+            </main>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-background text-foreground flex h-screen flex-col overflow-hidden">
-      <div
-        data-tauri-drag-region
-        className="bg-background/95 supports-[backdrop-filter]:bg-background/80 h-6 w-full shrink-0 backdrop-blur"
-      />
-
-      <SidebarProvider defaultOpen className="flex-1 overflow-hidden">
-        <AppSidebar pathname={location.pathname} />
-
-        <SidebarInset>
-          <header className="border-border bg-background/95 shrink-0 border-b backdrop-blur">
-            <div className="flex w-full items-center justify-between gap-4 px-4 py-2 md:px-6">
-              <div className="flex min-w-0 items-center gap-2">
-                <SidebarTrigger className="shrink-0" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{pageTitle}</p>
-                  <p className="text-primary/70 hidden text-xs sm:block">
-                    Schema-driven data console
-                  </p>
-                </div>
-              </div>
-
-              {isAuthenticated ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    await signOut();
-                    await navigate({ to: "/login" });
-                  }}
-                >
-                  Sign out
-                </Button>
-              ) : (
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/login">Sign in</Link>
-                </Button>
-              )}
-            </div>
-          </header>
-
-          <main className="flex-1 overflow-auto">
-            <div className="mx-auto w-full max-w-7xl p-6">
-              <Outlet />
-            </div>
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
-  );
-}
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className="dark h-full">
-      <head>
-        <HeadContent />
-      </head>
-      <body className="h-full" translate="no">
-        {children}
-        <Toaster theme="dark" position="bottom-right" />
-        <Scripts />
-      </body>
-    </html>
+    <>
+      {content}
+      <Toaster theme="dark" position="bottom-right" />
+    </>
   );
 }

@@ -1,6 +1,6 @@
 # Architecture
 
-Ops is a medium-sized single-package desktop app. The renderer owns the product interface and calls Supabase directly. The Rust/Tauri side provides native window setup, local desktop storage, updater support, and a small set of native commands.
+Ops is a medium-sized single-package desktop app. The renderer owns the product interface and calls Supabase directly. The Electron side provides native window setup, a secure app protocol, local desktop settings, updater support, and a small set of bridge methods exposed through `window.ops`.
 
 ## System Overview
 
@@ -9,13 +9,14 @@ flowchart LR
   User["Desktop user"] --> Renderer["React/TanStack renderer"]
   Renderer --> RuntimeConfig["Runtime Supabase config"]
   Renderer --> Repositories["Supabase repositories"]
-  Renderer --> TauriApi["Tauri commands and plugins"]
-  RuntimeConfig --> TauriStore["Tauri Store or browser localStorage"]
+  Renderer --> Bridge["window.ops bridge"]
+  RuntimeConfig --> LocalSettings["Electron settings or browser localStorage"]
   Repositories --> Supabase["Supabase Auth, Tables, RLS, RPC"]
-  TauriApi --> NativeShell["Rust/Tauri shell"]
-  NativeShell --> Bootstrap["Bootstrap payload consumption"]
-  NativeShell --> Updater["Tauri updater"]
-  Updater --> GitHub["GitHub Releases latest.json"]
+  Bridge --> Main["Electron main process"]
+  Main --> Protocol["ops:// app protocol"]
+  Main --> Bootstrap["Bootstrap payload consumption"]
+  Main --> Updater["electron-updater"]
+  Updater --> GitHub["GitHub Releases latest-mac.yml"]
 ```
 
 ## Renderer
@@ -27,9 +28,9 @@ The renderer lives under `src/` and uses TanStack Router file routes:
 - `src/routes/analytics.tsx` renders the RPC-backed analytics dashboard.
 - `src/routes/tables.$table.tsx` renders the schema-driven CRUD console.
 - `src/routes/settings.tsx` manages runtime connection, local settings, identity context, and app updates.
-- `src/routes/__root.tsx` owns the shell layout, auth/config guards, updater notification, document metadata, and translation protection.
+- `src/routes/__root.tsx` owns the shell layout, auth/config guards, updater notification, and navigation chrome.
 
-The root document sets `lang="en"`, adds the Google `notranslate` meta tag, and renders the body with `translate="no"` so browser translation tools do not mutate the app DOM.
+The HTML root is `index.html`. It sets `lang="en"`, the Google `notranslate` meta tag, and `translate="no"` so browser translation tools do not mutate the app DOM.
 
 ## Schema-Driven Console
 
@@ -72,33 +73,33 @@ The codebase includes a generated TypeScript contract in `src/types/database.ts`
 
 The app resolves Supabase configuration through `src/lib/supabase/runtime-config.ts`:
 
-1. In Tauri, call `consume_supabase_bootstrap_payload` to import and delete a one-time `bootstrap/supabase.json` payload.
-2. Read saved runtime config from Tauri Store under `supabase.runtime.connection`.
+1. In Electron, call `window.ops.config.consumeSupabaseBootstrapPayload()` to import and delete a one-time `bootstrap/supabase.json` payload.
+2. Read saved runtime config from the Electron settings bridge under `supabase.runtime.connection`.
 3. In web-only or development mode, use `.env.local` values as fallback.
 
 When the connection changes, the app resets the cached Supabase client with `resetSupabaseClient()` and emits an in-window config change event.
 
-## Tauri Shell
+## Electron Shell
 
-The Rust shell in `src-tauri/src/lib.rs` is intentionally narrow. It:
+The Electron shell lives under `electron/`:
 
-- Registers Tauri Store, Updater, Process, and development Log plugins.
-- Builds the main transparent window with macOS overlay title bar behavior.
-- Provides `supabase_sign_in_with_password` as a native auth fallback for WebView network failures.
-- Provides `consume_supabase_bootstrap_payload` for one-time runtime connection import.
+- `electron/main/index.ts` registers the `ops://` protocol, creates the main window, denies native permissions by default, blocks unexpected navigation/window opens, handles local settings, consumes bootstrap payloads, provides native Supabase Auth fallback, and wires auto-update events.
+- `electron/preload/index.ts` exposes only the typed `window.ops` bridge through `contextBridge`.
+- `electron/shared/ops-api.ts` and `electron/shared/ipc.ts` define the public bridge and IPC channel names.
 
-The shell does not implement business CRUD and does not include SQLite, `sqlx`, or a Tauri SQL plugin.
+The shell does not implement business CRUD and does not include SQLite, `sqlx`, or a local SQL plugin.
 
 ## Update Flow
 
-In production mode, `src/routes/__root.tsx` checks for updates after authentication. `src/lib/updater.ts` wraps the Tauri updater API. The Settings page lets the user check, download, install, and relaunch when an update is available.
+In production mode, `src/routes/__root.tsx` checks for updates after authentication. `src/lib/updater.ts` wraps the Electron bridge and returns serializable update states. The Settings page lets the user check, download, install, and restart when an update is available.
 
-`src-tauri/tauri.conf.json` configures the updater endpoint to read `latest.json` from GitHub Releases. `.github/workflows/release-macos.yml` creates macOS release assets and uploads the updater manifest.
+`electron-builder.yml` configures GitHub publishing. `.github/workflows/release-macos.yml` builds Electron output, packages macOS assets, and publishes update metadata for `electron-updater`.
 
 ## Architectural Constraints
 
-- Business data access belongs in Supabase repositories, not in Rust.
+- Business data access belongs in Supabase repositories, not in Electron main.
 - Critical state transitions should use Supabase RPCs.
 - Client code must assume JWT and RLS enforcement.
-- Local settings may use Tauri Store, but business state must not be persisted locally.
+- Local settings may use the Electron settings bridge, but business state must not be persisted locally.
+- Renderer code must not import `electron`, `ipcRenderer`, Node APIs, or main-process modules.
 - Any new table surface should start from `src/types/database.ts` and `src/lib/schema-registry.ts`.

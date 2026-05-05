@@ -1,7 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { relaunch } from "@tauri-apps/plugin-process";
 
 import { SupabaseConnectionForm } from "@/components/app/supabase-connection-form";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,9 @@ import {
 } from "@/lib/supabase/runtime-config";
 import {
   checkForAppUpdate,
+  downloadAndInstallAppUpdate,
   getCurrentVersion,
+  subscribeToAppUpdateStatus,
   type UpdateStatus,
 } from "@/lib/updater";
 
@@ -53,6 +54,10 @@ function AppVersionCard() {
 
   useEffect(() => {
     void getCurrentVersion().then(setVersion);
+
+    return subscribeToAppUpdateStatus((status) => {
+      setUpdateStatus(status);
+    });
   }, []);
 
   async function onCheckUpdate() {
@@ -64,23 +69,10 @@ function AppVersionCard() {
   async function onInstallUpdate() {
     if (updateStatus.state !== "available") return;
 
-    const { update } = updateStatus;
     try {
       setUpdateStatus({ state: "downloading", progress: 0 });
-      await update.downloadAndInstall((event) => {
-        if (event.event === "Started" && event.data.contentLength) {
-          setUpdateStatus({ state: "downloading", progress: 0 });
-        } else if (event.event === "Progress") {
-          setUpdateStatus((prev) =>
-            prev.state === "downloading"
-              ? { ...prev, progress: prev.progress + (event.data.chunkLength ?? 0) }
-              : prev,
-          );
-        } else if (event.event === "Finished") {
-          setUpdateStatus({ state: "ready" });
-        }
-      });
-      await relaunch();
+      const status = await downloadAndInstallAppUpdate();
+      setUpdateStatus(status);
     } catch (err) {
       setUpdateStatus({
         state: "error",
@@ -200,7 +192,7 @@ function SettingsPage() {
     try {
       const parsed = JSON.parse(settingValue);
       await SettingsStore.set(settingKey, parsed);
-      setMessage("Setting saved locally (Tauri Store)");
+      setMessage("Setting saved locally on this desktop");
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -237,7 +229,7 @@ function SettingsPage() {
       <header>
         <h1 className="text-2xl font-semibold">Settings</h1>
         <p className="text-muted-foreground text-sm">
-          Local desktop settings via Tauri Store (not persisted in Supabase).
+          Local desktop settings (not persisted in Supabase).
         </p>
       </header>
 
@@ -297,7 +289,7 @@ function SettingsPage() {
         <CardHeader>
           <CardTitle>Local Settings</CardTitle>
           <CardDescription>
-            Persisted in Tauri Store on this desktop.
+            Persisted locally on this desktop.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,0 +1,26 @@
+appId: com.polterware.ops
+productName: Ops
+artifactName: ops-${version}-${arch}.${ext}
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+  - package.json
+asar: true
+mac:
+  category: public.app-category.business
+  icon: build/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  target:
+    - dmg
+    - zip
+publish:
+  provider: github
+  owner: polterware
+  repo: ops
+electronUpdaterCompatibility: ">=2.16"
+
